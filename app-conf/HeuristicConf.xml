@@ -17,6 +17,13 @@
 <!-- Heuristics configurations, each heuristic will be loaded by a particular analyser -->
 <heuristics>
 
+  <heuristic>
+    <applicationtype>mapreduce</applicationtype>
+    <heuristicname>Hello World! heuristic</heuristicname>
+    <classname>com.linkedin.drelephant.mapreduce.heuristics.HelloWorldHeuristic</classname>
+    <viewname>views.html.help.mapreduce.helpHelloWorld</viewname>
+  </heuristic>
+
   <!-- MAP-REDUCE HEURISTICS -->
 
   <heuristic>
@@ -165,18 +172,21 @@
     <classname>com.linkedin.drelephant.spark.heuristics.ConfigurationHeuristic</classname>
     <viewname>views.html.help.spark.helpConfigurationHeuristic</viewname>
   </heuristic>
+  
   <heuristic>
     <applicationtype>spark</applicationtype>
     <heuristicname>Spark Executor Metrics</heuristicname>
     <classname>com.linkedin.drelephant.spark.heuristics.ExecutorsHeuristic</classname>
     <viewname>views.html.help.spark.helpExecutorsHeuristic</viewname>
   </heuristic>
+  
   <heuristic>
     <applicationtype>spark</applicationtype>
     <heuristicname>Spark Job Metrics</heuristicname>
     <classname>com.linkedin.drelephant.spark.heuristics.JobsHeuristic</classname>
     <viewname>views.html.help.spark.helpJobsHeuristic</viewname>
   </heuristic>
+  
   <heuristic>
     <applicationtype>spark</applicationtype>
     <heuristicname>Spark Stage Metrics</heuristicname>
