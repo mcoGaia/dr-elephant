@@ -498,4 +498,17 @@ public final class Utils {
     }
     return totalWaittime;
   }
+  
+
+    public static String getStrInOut(long in, long out) {
+      return String.valueOf(in) + ":" + String.valueOf(out);
+  }
+  
+  public static long sum (List<Long> values) {
+    long cpt = 0;
+    for (Long v : values)
+      cpt += v;
+    return cpt;
+  }
+
 }
