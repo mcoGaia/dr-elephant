@@ -123,19 +123,48 @@ public class MapperTimeHeuristic implements Heuristic<MapReduceApplicationData> 
 
     long averageSize = Statistics.average(inputBytes);
     long averageTimeMs = Statistics.average(runtimesMs);
+    long ecartType = Statistics.standardDeviation(averageTimeMs, runtimesMs);
 
     Severity shortTaskSeverity = shortTaskSeverity(tasks.length, averageTimeMs);
     Severity longTaskSeverity = longTaskSeverity(tasks.length, averageTimeMs);
-    Severity severity = Severity.max(shortTaskSeverity, longTaskSeverity);
+    Severity sev = Severity.max(shortTaskSeverity, longTaskSeverity); // Severity severity = Severity.max(shortTaskSeverity, longTaskSeverity);
+
+    //seuils = 5%, 10%, 15%, 20% de la moyenne.
+    double[] standardDeviationThreshold = {averageTimeMs*0.05, averageTimeMs*0.1, averageTimeMs*0.15, averageTimeMs*0.2};
+
+    Severity severity = Severity.getSeverityAscending(ecartType, standardDeviationThreshold[0], standardDeviationThreshold[1],
+                                                standardDeviationThreshold[2], standardDeviationThreshold[3]);
+/*
+    if (ecartType > standardDeviationThreshold[3]) {
+    severity = Severity.CRITICAL;
+    } else if (ecartType > standardDeviationThreshold[2]) {
+       severity = Severity.SEVERE;
+    }
+    else if (ecartType > standardDeviationThreshold[1]) {
+      severity = Severity.MODERATE;
+    }
+    else if (ecartType > standardDeviationThreshold[0]) {
+      severity = Severity.LOW;
+    }
+*/
+    String str = "";
+    for (long value : runtimesMs) {
+        str += value + ", ";
+    }
+    
+     severity = Severity.max(sev, severity);
+
 
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
 
     result.addResultDetail("Number of tasks", Integer.toString(tasks.length));
     result.addResultDetail("Average task input size", FileUtils.byteCountToDisplaySize(averageSize));
-    result.addResultDetail("Average task runtime", Statistics.readableTimespan(averageTimeMs));
+    result.addResultDetail("Average task runtime", Statistics.readableTimespan(averageTimeMs) + " ("+averageTimeMs+" ms)");
     result.addResultDetail("Max task runtime", Statistics.readableTimespan(taskMaxMs));
     result.addResultDetail("Min task runtime", Statistics.readableTimespan(taskMinMs));
+    result.addResultDetail("Standard deviation task runtime", Statistics.readableTimespan(ecartType) + " ("+ecartType+" ms)");  //ecart-type  + " " + "("+ecartType+" ms)"
+    result.addResultDetail("List task runtime", str);
 
     return result;
   }
