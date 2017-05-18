@@ -35,7 +35,7 @@ public class MapReduceCounterData {
   }
 
   public MapReduceCounterData() {
-    _pubCounters = new HashMap<String, Map<String, Long>>(8);
+    _pubCounters = new HashMap<String, Map<String, Long>>(12);  //8
   }
 
   /**
@@ -70,7 +70,7 @@ public class MapReduceCounterData {
   public void set(String groupName, String counterName, long value) {
     Map<String, Long> counterMap = _pubCounters.get(groupName);
     if (counterMap == null) {
-      counterMap = new HashMap<String, Long>(4);
+      counterMap = new HashMap<String, Long>(4);  //4
       _pubCounters.put(groupName, counterMap);
     }
     counterMap.put(counterName, value);
@@ -98,9 +98,11 @@ public class MapReduceCounterData {
     FileInput,
     FileSystemCounters,
     MapReduce,
-    FileOutput;
+    FileOutput,
+    SagaCounters;
   }
 
+  //(groupe, nom de la balise, nom affiche dans le tableau du jobhistory)
   public static enum CounterName {
     BYTES_READ(GroupName.FileInput, "BYTES_READ", "Bytes Read"),
     BYTES_WRITTEN(GroupName.FileOutput, "BYTES_WRITTEN", "Bytes Written"),
@@ -129,7 +131,16 @@ public class MapReduceCounterData {
     GC_MILLISECONDS(GroupName.MapReduce, "GC_TIME_MILLIS", "GC time elapsed (ms)"),
     COMMITTED_HEAP_BYTES(GroupName.MapReduce, "COMMITTED_HEAP_BYTES", "Total committed heap usage (bytes)"),
     PHYSICAL_MEMORY_BYTES(GroupName.MapReduce, "PHYSICAL_MEMORY_BYTES", "Physical memory (bytes) snapshot"),
-    VIRTUAL_MEMORY_BYTES(GroupName.MapReduce, "VIRTUAL_MEMORY_BYTES", "Virtual memory (bytes) snapshot");
+    VIRTUAL_MEMORY_BYTES(GroupName.MapReduce, "VIRTUAL_MEMORY_BYTES", "Virtual memory (bytes) snapshot"),
+    
+    /* <Saga counters> */     
+    JOB_INPUT_OBJECT(GroupName.SagaCounters, "Objects-In", ".-In: [ ... ]"),  //JOB_INPUT_OBJECT_HDFS(GroupName.SagaCounters, "HDFS-In", "HDFS-In: [ ... ]"),
+    JOB_OUTPUT_OBJECT(GroupName.SagaCounters, "Objects-Out", ".-Out: [ ... ]");  //JOB_INPUT_OBJECT_GBIN(GroupName.SagaCounters, "Gbin-In", "Gbin-In: [ ... ]");
+//    JOB_OUTPUT_OBJECT_HDFS(GroupName.SagaCounters, "HDFS-Out", "HDFS-Out: [ ... ]"),
+//    JOB_OUTPUT_OBJECT_GBIN(GroupName.SagaCounters, "Gbin-Out", "Gbin-Out: [ ... ]");
+    /* </Saga counters> */ 
+
+
 
     GroupName _group;
     String _name;
@@ -177,5 +188,6 @@ public class MapReduceCounterData {
     public String getGroupName() {
       return _group.name();
     }
+    
   }
 }

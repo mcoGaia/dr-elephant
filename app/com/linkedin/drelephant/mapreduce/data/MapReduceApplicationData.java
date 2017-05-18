@@ -193,6 +193,6 @@ public class MapReduceApplicationData implements HadoopApplicationData {
 
   @Override
   public String toString() {
-    return "id: " + getJobId() + ", name:" + getJobName();
+    return "id: " + getJobId() + ", name: " + getJobName();
   }
 }

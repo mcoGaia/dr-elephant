@@ -274,6 +274,11 @@ public class AnalyticJob {
     result.resourceUsed = hadoopAggregatedData.getResourceUsed();
     result.totalDelay = hadoopAggregatedData.getTotalDelay();
     result.resourceWasted = hadoopAggregatedData.getResourceWasted();
+    
+    //in/out
+    result.inputCard = hadoopAggregatedData.getInputCard();
+    result.outputCard = hadoopAggregatedData.getOutputCard(); 
+    //in/out
 
     // Load App Heuristic information
     int jobScore = 0;

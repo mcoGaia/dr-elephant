@@ -292,7 +292,7 @@ public final class Statistics {
   }
   
   public static long standardDeviation(long mean, List<Long> values) {
-    //Find ecart type
+    //Find standard deviation
     double sum = 0d;
     for (long value : values) {
       sum += Math.pow((mean - value), 2);

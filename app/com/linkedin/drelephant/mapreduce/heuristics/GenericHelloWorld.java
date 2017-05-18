@@ -78,7 +78,58 @@ public abstract class GenericHelloWorld implements Heuristic<MapReduceApplicatio
                                                  severity,
                                                  Utils.getHeuristicScore(severity, 0));
 
-    result.addResultDetail("To do: ", "nothing to do!");
+
+    MapReduceTaskData[] mapTasks = data.getMapperData();
+    MapReduceTaskData[] reduceTasks = data.getReducerData();
+
+    List<Long> mapInputObjects = new ArrayList<Long>();
+    List<Long> mapOutputObjects = new ArrayList<Long>();
+
+    for (MapReduceTaskData task : mapTasks) {      // In-Out mapper
+      if (task.isSampled()) {
+        mapInputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT));    //nombre de HDFS-In de chaque tache
+        mapOutputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT));    //nombre de Gbin-In de chaque tache
+      }
+    }
+
+    List<Long> ReduceInputObjects = new ArrayList<Long>();
+    List<Long> ReduceOutputObjects = new ArrayList<Long>();
+
+    for (MapReduceTaskData task : reduceTasks) {    // In-Out reducer
+      if (task.isSampled()) {
+        ReduceInputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT));    //nombre de HDFS-In de chaque tache
+        ReduceOutputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT));    //nombre de Gbin-In de chaque tache
+      }
+    }
+
+    long in = Utils.sum(mapInputObjects) + Utils.sum(ReduceInputObjects);
+    long out = Utils.sum(mapOutputObjects) + Utils.sum(ReduceOutputObjects);
+
+    String str = "";
+    for (long value : mapInputObjects) {
+      str += value + ", ";
+    }
+
+    String str2 = "";
+    for (long value : mapOutputObjects) {
+      str2 += value + ", ";
+    }
+
+    String str3 = "";
+    for (long value : ReduceInputObjects) {
+      str3 += value + ", ";
+    }
+
+    String str4 = "";
+    for (long value : ReduceOutputObjects) {
+      str4 += value + ", ";
+    }
+
+
+    result.addResultDetail("mapInputObjects", str);
+    result.addResultDetail("mapOutputObjects", str2);
+    result.addResultDetail("ReduceInputObjects", str3);
+    result.addResultDetail("ReduceOutputObjects", str4);
 
     return result;
   }

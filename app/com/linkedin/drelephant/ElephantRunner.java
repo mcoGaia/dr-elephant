@@ -114,6 +114,9 @@ public class ElephantRunner implements Runnable {
           _threadPoolExecutor = new ThreadPoolExecutor(_executorNum, _executorNum, 0L, TimeUnit.MILLISECONDS,
                   new LinkedBlockingQueue<Runnable>(), factory);
 
+
+          int i = 0;
+
           while (_running.get() && !Thread.currentThread().isInterrupted()) {
             _analyticJobGenerator.updateResourceManagerAddresses();
             lastRun = System.currentTimeMillis();
@@ -149,6 +152,18 @@ public class ElephantRunner implements Runnable {
 
             //Wait for a while before next fetch
             waitInterval(_fetchInterval);
+            
+            
+            // In/Out
+            
+            
+            
+            System.out.println("new job " + i + "...");
+            
+            ++i;
+            
+            // In/Out
+            
           }
           logger.info("Main thread is terminated.");
           return null;

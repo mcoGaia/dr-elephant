@@ -32,8 +32,10 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+//import javax.persistence.EntityResult;
 
 @Entity
+//@EntityResult
 @Table(name = "yarn_app_result")
 public class AppResult extends Model {
 
@@ -165,9 +167,13 @@ public class AppResult extends Model {
   
   //in/out
   
+//  @Column(nullable = true)
+//@Column(name = "input_card", nullable = false, columnDefinition = "bigint(20) unsigned default NULL")
   @Column(nullable = true)
   public long inputCard;
   
+//  @Column(nullable = true)
+//@Column(name = "output_card", nullable = false, columnDefinition = "bigint(20) unsigned default NULL")
   @Column(nullable = true)
   public long outputCard;
 
