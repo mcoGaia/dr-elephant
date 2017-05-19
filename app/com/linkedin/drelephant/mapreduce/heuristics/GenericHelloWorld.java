@@ -78,7 +78,7 @@ public abstract class GenericHelloWorld implements Heuristic<MapReduceApplicatio
                                                  severity,
                                                  Utils.getHeuristicScore(severity, 0));
 
-
+/*
     MapReduceTaskData[] mapTasks = data.getMapperData();
     MapReduceTaskData[] reduceTasks = data.getReducerData();
 
@@ -87,8 +87,8 @@ public abstract class GenericHelloWorld implements Heuristic<MapReduceApplicatio
 
     for (MapReduceTaskData task : mapTasks) {      // In-Out mapper
       if (task.isSampled()) {
-        mapInputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT));    //nombre de HDFS-In de chaque tache
-        mapOutputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT));    //nombre de Gbin-In de chaque tache
+        mapInputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT));    //nombre de In de chaque tache
+        mapOutputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT));    //nombre de Out de chaque tache
       }
     }
 
@@ -97,8 +97,8 @@ public abstract class GenericHelloWorld implements Heuristic<MapReduceApplicatio
 
     for (MapReduceTaskData task : reduceTasks) {    // In-Out reducer
       if (task.isSampled()) {
-        ReduceInputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT));    //nombre de HDFS-In de chaque tache
-        ReduceOutputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT));    //nombre de Gbin-In de chaque tache
+        ReduceInputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT));    //nombre de In de chaque tache
+        ReduceOutputObjects.add(task.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT));    //nombre de Out de chaque tache
       }
     }
 
@@ -125,11 +125,18 @@ public abstract class GenericHelloWorld implements Heuristic<MapReduceApplicatio
       str4 += value + ", ";
     }
 
+    
 
     result.addResultDetail("mapInputObjects", str);
     result.addResultDetail("mapOutputObjects", str2);
     result.addResultDetail("ReduceInputObjects", str3);
     result.addResultDetail("ReduceOutputObjects", str4);
+*/
+
+
+
+    result.addResultDetail("Total in = ", data.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT) + "");
+    result.addResultDetail("Total out = ", data.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT) + "");
 
     return result;
   }

@@ -70,10 +70,13 @@ public class MapReduceCounterData {
   public void set(String groupName, String counterName, long value) {
     Map<String, Long> counterMap = _pubCounters.get(groupName);
     if (counterMap == null) {
-      counterMap = new HashMap<String, Long>(4);  //4
+      counterMap = new HashMap<String, Long>(6);  //4
       _pubCounters.put(groupName, counterMap);
     }
-    counterMap.put(counterName, value);
+    if ((counterName.equals("Objects-In") || counterName.equals("Objects-Out")) && counterMap.get(counterName)!=null)
+      counterMap.put(counterName, value + counterMap.get(counterName));
+    else
+      counterMap.put(counterName, value);
   }
 
   public Set<String> getGroupNames() {

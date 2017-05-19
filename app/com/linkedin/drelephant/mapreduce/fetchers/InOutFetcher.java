@@ -13,7 +13,7 @@ public class InOutFetcher {
 
 	public static ArrayList<Long> inOutFetch (MapReduceApplicationData data)
  {
-
+/*
     MapReduceTaskData[] mapTasks = data.getMapperData();
     MapReduceTaskData[] reduceTasks = data.getReducerData();
 
@@ -39,7 +39,10 @@ public class InOutFetcher {
 
     long in = Utils.sum(mapInputObjects) + Utils.sum(ReduceInputObjects);
     long out = Utils.sum(mapOutputObjects) + Utils.sum(ReduceOutputObjects);
+*/
 
+    long in = data.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT);
+    long out = data.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT);
 
     ArrayList al = new ArrayList<Long>();
     al.add(in);
