@@ -132,7 +132,7 @@ public class ReducerTimeHeuristic implements Heuristic<MapReduceApplicationData>
     result.addResultDetail("Average task runtime", Statistics.readableTimespan(averageRuntimeMs));
     result.addResultDetail("Max task runtime", Statistics.readableTimespan(taskMaxMs));
     result.addResultDetail("Min task runtime", Statistics.readableTimespan(taskMinMs));
-    result.addResultDetail("Standard deviation task runtime", Statistics.readableTimespan(ecartType));  //ecart-type
+    result.addResultDetail("Standard deviation task runtime", Statistics.readableTimespan(ecartType) + " ("+ecartType+" ms)");  //ecart-type
 
     return result;
   }

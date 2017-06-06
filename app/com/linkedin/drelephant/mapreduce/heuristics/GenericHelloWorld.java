@@ -78,6 +78,16 @@ public abstract class GenericHelloWorld implements Heuristic<MapReduceApplicatio
                                                  severity,
                                                  Utils.getHeuristicScore(severity, 0));
 
+    result.addResultDetail("Total in = ", data.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT) + "");
+    result.addResultDetail("Total out = ", data.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT) + "");
+
+    return result;
+  }
+}
+
+
+
+
 /*
     MapReduceTaskData[] mapTasks = data.getMapperData();
     MapReduceTaskData[] reduceTasks = data.getReducerData();
@@ -133,11 +143,3 @@ public abstract class GenericHelloWorld implements Heuristic<MapReduceApplicatio
     result.addResultDetail("ReduceOutputObjects", str4);
 */
 
-
-
-    result.addResultDetail("Total in = ", data.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT) + "");
-    result.addResultDetail("Total out = ", data.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT) + "");
-
-    return result;
-  }
-}

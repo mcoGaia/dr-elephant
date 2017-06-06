@@ -24,9 +24,7 @@ import com.linkedin.drelephant.mapreduce.data.MapReduceApplicationData;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
-import com.linkedin.drelephant.mapreduce.fetchers.InOutFetcher;
-import org.apache.hadoop.conf.Configuration;
-import java.util.ArrayList;
+import com.linkedin.drelephant.mapreduce.data.MapReduceCounterData;
 
 
 public class MapReduceMetricsAggregator implements HadoopMetricsAggregator {
@@ -81,11 +79,8 @@ public class MapReduceMetricsAggregator implements HadoopMetricsAggregator {
 
     // In/Out
 
-    long in = 0;
-    long out = 0;
-    ArrayList<Long> al = InOutFetcher.inOutFetch(data);
-    in = al.get(0);
-    out = al.get(1);
+    long in = data.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT);
+    long out = data.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT);
     _hadoopAggregatedData.setInputCard(in);
     _hadoopAggregatedData.setOutputCard(out);
 

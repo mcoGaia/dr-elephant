@@ -146,12 +146,13 @@ public class MapperTimeHeuristic implements Heuristic<MapReduceApplicationData> 
     else if (ecartType > standardDeviationThreshold[0]) {
       severity = Severity.LOW;
     }
-*/
+
     String str = "";
     for (long value : runtimesMs) {
         str += value + ", ";
     }
-    
+*/
+
      severity = Severity.max(sev, severity);
 
 
@@ -164,7 +165,7 @@ public class MapperTimeHeuristic implements Heuristic<MapReduceApplicationData> 
     result.addResultDetail("Max task runtime", Statistics.readableTimespan(taskMaxMs));
     result.addResultDetail("Min task runtime", Statistics.readableTimespan(taskMinMs));
     result.addResultDetail("Standard deviation task runtime", Statistics.readableTimespan(ecartType) + " ("+ecartType+" ms)");  //ecart-type  + " " + "("+ecartType+" ms)"
-    result.addResultDetail("List task runtime", str);
+//    result.addResultDetail("List task runtime", str);
 
     return result;
   }
