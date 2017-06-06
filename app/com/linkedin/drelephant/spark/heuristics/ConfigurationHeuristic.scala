@@ -16,6 +16,10 @@
 
 package com.linkedin.drelephant.spark.heuristics
 
+import java.util.ArrayList
+
+import com.linkedin.drelephant.math.Statistics
+
 import scala.collection.JavaConverters
 import scala.util.Try
 
@@ -39,9 +43,6 @@ class ConfigurationHeuristic(private val heuristicConfigurationData: HeuristicCo
   val serializerIfNonNullRecommendation: String =
     Option(heuristicConfigurationData.getParamMap.get(SERIALIZER_IF_NON_NULL_RECOMMENDATION_KEY))
       .getOrElse(DEFAULT_SERIALIZER_IF_NON_NULL_RECOMMENDATION)
-
-  val serializerIfNonNullSeverityIfRecommendationUnmet: Severity =
-    DEFAULT_SERIALIZER_IF_NON_NULL_SEVERITY_IF_RECOMMENDATION_UNMET
 
   override def getHeuristicConfData(): HeuristicConfigurationData = heuristicConfigurationData
 
@@ -69,17 +70,31 @@ class ConfigurationHeuristic(private val heuristicConfigurationData: HeuristicCo
         formatProperty(evaluator.executorCores.map(_.toString))
       ),
       new HeuristicResultDetails(
-        SPARK_SERIALIZER_KEY,
-        formatProperty(evaluator.serializer)
+        SPARK_APPLICATION_DURATION,
+        evaluator.applicationDuration.toString + " Seconds"
+      ),
+      new HeuristicResultDetails(
+        SPARK_DYNAMIC_ALLOCATION_ENABLED,
+        formatProperty(evaluator.isDynamicAllocationEnabled.map(_.toString))
       )
     )
+    // Constructing a mutable ArrayList for resultDetails, otherwise addResultDetail method HeuristicResult cannot be used.
+    val mutableResultDetailsArrayList = new ArrayList(resultDetails.asJava)
     val result = new HeuristicResult(
       heuristicConfigurationData.getClassName,
       heuristicConfigurationData.getHeuristicName,
       evaluator.severity,
       0,
-      resultDetails.asJava
+      mutableResultDetailsArrayList
     )
+    if (evaluator.serializerSeverity != Severity.NONE) {
+      result.addResultDetail(SPARK_SERIALIZER_KEY, formatProperty(evaluator.serializer),
+        "KyroSerializer is Not Enabled.")
+    }
+    if (evaluator.shuffleAndDynamicAllocationSeverity != Severity.NONE) {
+      result.addResultDetail(SPARK_SHUFFLE_SERVICE_ENABLED, formatProperty(evaluator.isShuffleServiceEnabled.map(_.toString)),
+      "Spark shuffle service is not enabled.")
+    }
     result
   }
 }
@@ -95,6 +110,9 @@ object ConfigurationHeuristic {
   val SPARK_EXECUTOR_INSTANCES_KEY = "spark.executor.instances"
   val SPARK_EXECUTOR_CORES_KEY = "spark.executor.cores"
   val SPARK_SERIALIZER_KEY = "spark.serializer"
+  val SPARK_APPLICATION_DURATION = "spark.application.duration"
+  val SPARK_SHUFFLE_SERVICE_ENABLED = "spark.shuffle.service.enabled"
+  val SPARK_DYNAMIC_ALLOCATION_ENABLED = "spark.dynamicAllocation.enabled"
 
   class Evaluator(configurationHeuristic: ConfigurationHeuristic, data: SparkApplicationData) {
     lazy val appConfigurationProperties: Map[String, String] =
@@ -112,20 +130,42 @@ object ConfigurationHeuristic {
     lazy val executorCores: Option[Int] =
       Try(getProperty(SPARK_EXECUTOR_CORES_KEY).map(_.toInt)).getOrElse(None)
 
-    lazy val serializer: Option[String] = getProperty(SPARK_SERIALIZER_KEY)
-
-    lazy val serializerSeverity: Severity = serializer match {
-      case None => Severity.NONE
-      case Some(`serializerIfNonNullRecommendation`) => Severity.NONE
-      case Some(_) => serializerIfNonNullSeverityIfRecommendationUnmet
+    lazy val applicationDuration : Long = {
+      require(data.applicationInfo.attempts.nonEmpty)
+      val lastApplicationAttemptInfo = data.applicationInfo.attempts.last
+      (lastApplicationAttemptInfo.endTime.getTime - lastApplicationAttemptInfo.startTime.getTime) / Statistics.SECOND_IN_MS
     }
 
-    lazy val severity: Severity = serializerSeverity
+    lazy val serializer: Option[String] = getProperty(SPARK_SERIALIZER_KEY)
+
+    /**
+     * If the serializer is either not configured or not equal to KryoSerializer, then the severity will be moderate.
+     */
+
+    lazy val serializerSeverity: Severity = serializer match {
+      case None => Severity.MODERATE
+      case Some(`serializerIfNonNullRecommendation`) => Severity.NONE
+      case Some(_) => DEFAULT_SERIALIZER_IF_NON_NULL_SEVERITY_IF_RECOMMENDATION_UNMET
+    }
+
+    /**
+     * The following logic computes severity based on shuffle service and dynamic allocation flags.
+     * If dynamic allocation is disabled, then the severity will be MODERATE if shuffle service is disabled or not specified.
+     * If dynamic allocation is enabled, then the severity will be SEVERE if shuffle service is disabled or not specified.
+     */
+
+    lazy val isDynamicAllocationEnabled: Option[Boolean] = Some(getProperty(SPARK_DYNAMIC_ALLOCATION_ENABLED).exists(_.toBoolean == true))
+    lazy val isShuffleServiceEnabled: Option[Boolean] = Some(getProperty(SPARK_SHUFFLE_SERVICE_ENABLED).exists(_.toBoolean == true))
+
+    lazy val shuffleAndDynamicAllocationSeverity = (isDynamicAllocationEnabled, isShuffleServiceEnabled) match {
+      case (_, Some(true)) => Severity.NONE
+      case (Some(false), Some(false)) => Severity.MODERATE
+      case (Some(true), Some(false)) => Severity.SEVERE
+    }
+
+    lazy val severity: Severity = Severity.max(serializerSeverity, shuffleAndDynamicAllocationSeverity)
 
     private val serializerIfNonNullRecommendation: String = configurationHeuristic.serializerIfNonNullRecommendation
-
-    private val serializerIfNonNullSeverityIfRecommendationUnmet: Severity =
-      configurationHeuristic.serializerIfNonNullSeverityIfRecommendationUnmet
 
     private def getProperty(key: String): Option[String] = appConfigurationProperties.get(key)
   }

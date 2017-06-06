@@ -18,8 +18,9 @@
 <fetchers>
   <fetcher>
     <applicationtype>spark</applicationtype>
-    <classname>com.linkedin.drelephant.spark.fetchers.SparkFetcher</classname>
+    <classname>org.apache.spark.deploy.history.SparkFSFetcher</classname>
     <params>
+      <event_log_size_limit_in_mb>50</event_log_size_limit_in_mb>
     </params>
   </fetcher>
 </fetchers>

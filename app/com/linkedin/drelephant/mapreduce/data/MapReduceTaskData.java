@@ -21,7 +21,9 @@ package com.linkedin.drelephant.mapreduce.data;
  * This class manages the MapReduce Tasks
  */
 public class MapReduceTaskData {
+
   private MapReduceCounterData _counterHolder;
+  private String _state;
   private String _taskId;
   // The successful attempt id
   private String _attemptId;
@@ -30,39 +32,33 @@ public class MapReduceTaskData {
   private long _sortTimeMs = 0;
   private long _startTimeMs = 0;
   private long _finishTimeMs = 0;
-  private boolean _sampled = false;
+  // This flag will only be true when successfully setting time and counter values.
+  private boolean _isTimeDataPresent = false;
+  private boolean _isCounterDataPresent = false;
 
-  public MapReduceTaskData(MapReduceCounterData counterHolder, long[] time) {
-    this._counterHolder = counterHolder;
-    this._totalTimeMs = time[0];
-    this._shuffleTimeMs = time[1];
-    this._sortTimeMs = time[2];
-    this._startTimeMs = time[3];
-    this._finishTimeMs = time[4];
-    this._sampled = true;
-  }
-
-  public MapReduceTaskData(MapReduceCounterData counterHolder) {
-    this._counterHolder = counterHolder;
-  }
 
   public MapReduceTaskData(String taskId, String taskAttemptId) {
+    this(taskId, taskAttemptId, "SUCCEEDED");
+  }
+  public MapReduceTaskData(String taskId, String taskAttemptId, String state) {
     this._taskId = taskId;
     this._attemptId = taskAttemptId;
+    this._state = state;
   }
 
-  public void setCounter(MapReduceCounterData counterHolder) {
-    this._counterHolder = counterHolder;
-    this._sampled = true;
-  }
-
-  public void setTime(long[] time) {
-    this._totalTimeMs = time[0];
-    this._shuffleTimeMs = time[1];
-    this._sortTimeMs = time[2];
-    this._startTimeMs = time[3];
-    this._finishTimeMs = time[4];
-    this._sampled = true;
+  public void setTimeAndCounter(long[] time, MapReduceCounterData counterHolder) {
+    if (time != null) {
+      this._totalTimeMs = time[0];
+      this._shuffleTimeMs = time[1];
+      this._sortTimeMs = time[2];
+      this._startTimeMs = time[3];
+      this._finishTimeMs = time[4];
+      this._isTimeDataPresent = true;
+    }
+    if (counterHolder != null) {
+      this._counterHolder = counterHolder;
+      this._isCounterDataPresent = true;
+    }
   }
 
   public MapReduceCounterData getCounters() {
@@ -93,9 +89,13 @@ public class MapReduceTaskData {
     return _finishTimeMs;
   }
 
-  public boolean isSampled() {
-    return _sampled;
+  public boolean isTimeDataPresent() {
+    return _isTimeDataPresent;
   }
+
+  public boolean isCounterDataPresent() { return _isCounterDataPresent; }
+
+  public boolean isTimeAndCounterDataPresent() { return isTimeDataPresent() && isCounterDataPresent();}
 
   public String getTaskId() {
     return _taskId;
@@ -104,4 +104,6 @@ public class MapReduceTaskData {
   public String getAttemptId() {
     return _attemptId;
   }
+
+  public String getState() { return _state; }
 }

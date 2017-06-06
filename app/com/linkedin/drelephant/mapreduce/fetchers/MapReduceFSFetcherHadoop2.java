@@ -46,6 +46,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TimeZone;
 
 /**
  * This class implements the Fetcher for MapReduce Applications on Hadoop2
@@ -57,6 +58,7 @@ public class MapReduceFSFetcherHadoop2 extends MapReduceFetcher {
   private static final Logger logger = Logger.getLogger(MapReduceFSFetcherHadoop2.class);
 
   private static final String LOG_SIZE_XML_FIELD = "history_log_size_limit_in_mb";
+  private static final String HISTORY_SERVER_TIME_ZONE_XML_FIELD = "history_server_time_zone";
   private static final String TIMESTAMP_DIR_FORMAT = "%04d" + File.separator + "%02d" + File.separator + "%02d";
   private static final int SERIAL_NUMBER_DIRECTORY_DIGITS = 6;
   protected static final double DEFALUT_MAX_LOG_SIZE_IN_MB = 500;
@@ -65,6 +67,7 @@ public class MapReduceFSFetcherHadoop2 extends MapReduceFetcher {
   private String _historyLocation;
   private String _intermediateHistoryLocation;
   private double _maxLogSizeInMB;
+  private TimeZone _timeZone;
 
   public MapReduceFSFetcherHadoop2(FetcherConfigurationData fetcherConfData) throws IOException {
     super(fetcherConfData);
@@ -77,6 +80,10 @@ public class MapReduceFSFetcherHadoop2 extends MapReduceFetcher {
       }
     }
     logger.info("The history log limit of MapReduce application is set to " + _maxLogSizeInMB + " MB");
+
+    String timeZoneStr = fetcherConfData.getParamMap().get(HISTORY_SERVER_TIME_ZONE_XML_FIELD);
+    _timeZone = timeZoneStr == null ? TimeZone.getDefault() : TimeZone.getTimeZone(timeZoneStr);
+    logger.info("Using timezone: " + _timeZone.getID());
 
     Configuration conf = new Configuration();
     this._fs = FileSystem.get(conf);
@@ -92,6 +99,10 @@ public class MapReduceFSFetcherHadoop2 extends MapReduceFetcher {
 
   public double getMaxLogSizeInMB() {
     return _maxLogSizeInMB;
+  }
+
+  public TimeZone getTimeZone() {
+    return _timeZone;
   }
 
   /**
@@ -112,7 +123,7 @@ public class MapReduceFSFetcherHadoop2 extends MapReduceFetcher {
    */
   protected String getHistoryDir(AnalyticJob job) {
     // generate the date part
-    Calendar timestamp = Calendar.getInstance();
+    Calendar timestamp = Calendar.getInstance(_timeZone);
     timestamp.setTimeInMillis(job.getFinishTime());
     String datePart = String.format(TIMESTAMP_DIR_FORMAT,
             timestamp.get(Calendar.YEAR),
@@ -225,51 +236,52 @@ public class MapReduceFSFetcherHadoop2 extends MapReduceFetcher {
 
     String state = jobInfo.getJobStatus();
     if (state.equals("SUCCEEDED")) {
-
       jobData.setSucceeded(true);
-
-      // Fetch job counter
-      MapReduceCounterData jobCounter = getCounterData(jobInfo.getTotalCounters());
-
-      // Fetch task data
-      Map<TaskID, JobHistoryParser.TaskInfo> allTasks = jobInfo.getAllTasks();
-      List<JobHistoryParser.TaskInfo> mapperInfoList = new ArrayList<JobHistoryParser.TaskInfo>();
-      List<JobHistoryParser.TaskInfo> reducerInfoList = new ArrayList<JobHistoryParser.TaskInfo>();
-      for (JobHistoryParser.TaskInfo taskInfo : allTasks.values()) {
-        if (taskInfo.getTaskType() == TaskType.MAP) {
-          mapperInfoList.add(taskInfo);
-        } else {
-          reducerInfoList.add(taskInfo);
-        }
-      }
-      if (jobInfo.getTotalMaps() > MAX_SAMPLE_SIZE) {
-        logger.debug(jobId + " total mappers: " + mapperInfoList.size());
-      }
-      if (jobInfo.getTotalReduces() > MAX_SAMPLE_SIZE) {
-        logger.debug(jobId + " total reducers: " + reducerInfoList.size());
-      }
-      MapReduceTaskData[] mapperList = getTaskData(jobId, mapperInfoList);
-      MapReduceTaskData[] reducerList = getTaskData(jobId, reducerInfoList);
-
-      jobData.setCounters(jobCounter).setMapperData(mapperList).setReducerData(reducerList);
-    } else if (state.equals("FAILED")) {
-
+    }
+    else if (state.equals("FAILED")) {
       jobData.setSucceeded(false);
       jobData.setDiagnosticInfo(jobInfo.getErrorInfo());
     } else {
-      // Should not reach here
-      throw new RuntimeException("Job state not supported. Should be either SUCCEEDED or FAILED");
+      throw new RuntimeException("job neither succeeded or failed. can not process it ");
     }
+
+
+    // Fetch job counter
+    MapReduceCounterData jobCounter = getCounterData(jobInfo.getTotalCounters());
+
+    // Fetch task data
+    Map<TaskID, JobHistoryParser.TaskInfo> allTasks = jobInfo.getAllTasks();
+    List<JobHistoryParser.TaskInfo> mapperInfoList = new ArrayList<JobHistoryParser.TaskInfo>();
+    List<JobHistoryParser.TaskInfo> reducerInfoList = new ArrayList<JobHistoryParser.TaskInfo>();
+    for (JobHistoryParser.TaskInfo taskInfo : allTasks.values()) {
+      if (taskInfo.getTaskType() == TaskType.MAP) {
+        mapperInfoList.add(taskInfo);
+      } else {
+        reducerInfoList.add(taskInfo);
+      }
+    }
+    if (jobInfo.getTotalMaps() > MAX_SAMPLE_SIZE) {
+      logger.debug(jobId + " total mappers: " + mapperInfoList.size());
+    }
+    if (jobInfo.getTotalReduces() > MAX_SAMPLE_SIZE) {
+      logger.debug(jobId + " total reducers: " + reducerInfoList.size());
+    }
+    MapReduceTaskData[] mapperList = getTaskData(jobId, mapperInfoList);
+    MapReduceTaskData[] reducerList = getTaskData(jobId, reducerInfoList);
+
+    jobData.setCounters(jobCounter).setMapperData(mapperList).setReducerData(reducerList);
 
     return jobData;
   }
 
   private MapReduceCounterData getCounterData(Counters counters) {
     MapReduceCounterData holder = new MapReduceCounterData();
-    for (CounterGroup group : counters) {
-      String groupName = group.getName();
-      for (Counter counter : group) {
-        holder.set(groupName, counter.getName(), counter.getValue());
+    if (counters != null) {
+      for (CounterGroup group : counters) {
+        String groupName = group.getName();
+        for (Counter counter : group) {
+          holder.set(groupName, counter.getName(), counter.getValue());
+        }
       }
     }
     return holder;
@@ -292,28 +304,34 @@ public class MapReduceFSFetcherHadoop2 extends MapReduceFetcher {
     return time;
   }
 
-  private MapReduceTaskData[] getTaskData(String jobId, List<JobHistoryParser.TaskInfo> infoList) {
+  protected MapReduceTaskData[] getTaskData(String jobId, List<JobHistoryParser.TaskInfo> infoList) {
     int sampleSize = sampleAndGetSize(jobId, infoList);
 
-    MapReduceTaskData[] taskList = new MapReduceTaskData[sampleSize];
+    List<MapReduceTaskData> taskList = new ArrayList<MapReduceTaskData>();
     for (int i = 0; i < sampleSize; i++) {
       JobHistoryParser.TaskInfo tInfo = infoList.get(i);
-      if (!"SUCCEEDED".equals(tInfo.getTaskStatus())) {
-        System.out.println("This is a failed task: " + tInfo.getTaskId().toString());
-        continue;
-      }
 
       String taskId = tInfo.getTaskId().toString();
-      TaskAttemptID attemptId = tInfo.getSuccessfulAttemptId();
-      taskList[i] = new MapReduceTaskData(taskId, attemptId.toString());
+      TaskAttemptID attemptId = null;
+      if(tInfo.getTaskStatus().equals("SUCCEEDED")) {
+        attemptId = tInfo.getSuccessfulAttemptId();
+      } else {
+        attemptId = tInfo.getFailedDueToAttemptId();
+      }
+
+      MapReduceTaskData taskData = new MapReduceTaskData(taskId, attemptId == null ? "" : attemptId.toString() , tInfo.getTaskStatus());
 
       MapReduceCounterData taskCounterData = getCounterData(tInfo.getCounters());
-      long[] taskExecTime = getTaskExecTime(tInfo.getAllTaskAttempts().get(attemptId));
 
-      taskList[i].setCounter(taskCounterData);
-      taskList[i].setTime(taskExecTime);
+      long[] taskExecTime = null;
+      if (attemptId != null) {
+        taskExecTime = getTaskExecTime(tInfo.getAllTaskAttempts().get(attemptId));
+      }
+
+      taskData.setTimeAndCounter(taskExecTime, taskCounterData);
+      taskList.add(taskData);
     }
-    return taskList;
+    return taskList.toArray(new MapReduceTaskData[taskList.size()]);
   }
 
   private class DataFiles {

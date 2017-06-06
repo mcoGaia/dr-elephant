@@ -17,7 +17,7 @@
 package com.linkedin.drelephant.spark.heuristics
 
 import com.linkedin.drelephant.spark.data.SparkRestDerivedData
-import com.linkedin.drelephant.spark.fetchers.statusapiv1.ApplicationInfo
+import com.linkedin.drelephant.spark.fetchers.statusapiv1.{ApplicationAttemptInfoImpl, ApplicationInfoImpl}
 import scala.collection.JavaConverters
 
 import com.linkedin.drelephant.analysis.{ApplicationType, Severity}
@@ -25,6 +25,7 @@ import com.linkedin.drelephant.configurations.heuristic.HeuristicConfigurationDa
 import com.linkedin.drelephant.spark.data.{SparkApplicationData, SparkLogDerivedData}
 import org.apache.spark.scheduler.SparkListenerEnvironmentUpdate
 import org.scalatest.{FunSpec, Matchers}
+import java.util.Date
 
 
 class ConfigurationHeuristicTest extends FunSpec with Matchers {
@@ -40,19 +41,25 @@ class ConfigurationHeuristicTest extends FunSpec with Matchers {
 
     val configurationHeuristic = new ConfigurationHeuristic(heuristicConfigurationData)
 
-    describe(".apply") {
+    describe("apply with NO Severity") {
       val configurationProperties = Map(
         "spark.serializer" -> "org.apache.spark.serializer.KryoSerializer",
         "spark.storage.memoryFraction" -> "0.3",
         "spark.driver.memory" -> "2G",
         "spark.executor.instances" -> "900",
         "spark.executor.memory" -> "1g",
-        "spark.shuffle.memoryFraction" -> "0.5"
+        "spark.shuffle.memoryFraction" -> "0.5",
+        "spark.shuffle.service.enabled" -> "true",
+        "spark.dynamicAllocation.enabled" -> "true"
       )
 
       val data = newFakeSparkApplicationData(configurationProperties)
       val heuristicResult = configurationHeuristic.apply(data)
       val heuristicResultDetails = heuristicResult.getHeuristicResultDetails
+
+      it("returns the size of result details") {
+        heuristicResultDetails.size() should be(6)
+      }
 
       it("returns the severity") {
         heuristicResult.getSeverity should be(Severity.NONE)
@@ -82,10 +89,56 @@ class ConfigurationHeuristicTest extends FunSpec with Matchers {
         details.getValue should include("default")
       }
 
-      it("returns the serializer") {
+      it("returns the application duration") {
         val details = heuristicResultDetails.get(4)
+        details.getName should include("spark.application.duration")
+        details.getValue should include("10")
+      }
+
+      it("returns the dynamic allocation flag") {
+        val details = heuristicResultDetails.get(5)
+        details.getName should include("spark.dynamicAllocation.enabled")
+        details.getValue should be("true")
+      }
+    }
+
+    describe("apply with Severity") {
+      val configurationProperties = Map(
+        "spark.serializer" -> "dummySerializer",
+        "spark.shuffle.service.enabled" -> "false",
+        "spark.dynamicAllocation.enabled" -> "true"
+      )
+
+      val data = newFakeSparkApplicationData(configurationProperties)
+      val heuristicResult = configurationHeuristic.apply(data)
+      val heuristicResultDetails = heuristicResult.getHeuristicResultDetails
+
+      it("returns the size of result details") {
+        heuristicResultDetails.size() should be(8)
+      }
+
+      it("returns the severity") {
+        heuristicResult.getSeverity should be(Severity.SEVERE)
+      }
+
+      it("returns the dynamic allocation flag") {
+        val details = heuristicResultDetails.get(5)
+        details.getName should include("spark.dynamicAllocation.enabled")
+        details.getValue should be("true")
+      }
+
+      it("returns the serializer") {
+        val details = heuristicResultDetails.get(6)
         details.getName should include("spark.serializer")
-        details.getValue should be("org.apache.spark.serializer.KryoSerializer")
+        details.getValue should be("dummySerializer")
+        details.getDetails should be("KyroSerializer is Not Enabled.")
+      }
+
+      it("returns the shuffle service flag") {
+        val details = heuristicResultDetails.get(7)
+        details.getName should include("spark.shuffle.service.enabled")
+        details.getValue should be("false")
+        details.getDetails should be("Spark shuffle service is not enabled.")
       }
     }
 
@@ -141,34 +194,78 @@ class ConfigurationHeuristicTest extends FunSpec with Matchers {
         evaluator.serializer should be(Some("org.apache.spark.serializer.KryoSerializer"))
       }
 
-      it("has no serializer when it's absent") {
+      it("has no serializer, dynamic allocation flag, and shuffle flag when they are absent") {
         val evaluator = newEvaluatorWithConfigurationProperties(Map.empty)
         evaluator.serializer should be(None)
-      }
-
-      it("has the severity of the serializer setting when it matches our recommendation") {
-        val evaluator = newEvaluatorWithConfigurationProperties(Map("spark.serializer" -> "org.apache.spark.serializer.KryoSerializer"))
-        evaluator.serializerSeverity should be(Severity.NONE)
-      }
-
-      it("has the severity of the serializer setting when it doesn't match our recommendation and is non-null") {
-        val evaluator = newEvaluatorWithConfigurationProperties(Map("spark.serializer" -> "org.apache.spark.serializer.FooSerializer"))
+        evaluator.isDynamicAllocationEnabled should be(Some(false))
+        evaluator.isShuffleServiceEnabled should be(Some(false))
         evaluator.serializerSeverity should be(Severity.MODERATE)
-      }
-
-      it("has the severity of the serializer setting when it is null") {
-        val evaluator = newEvaluatorWithConfigurationProperties(Map.empty)
-        evaluator.serializerSeverity should be(Severity.NONE)
-      }
-
-      it("computes the overall severity when there are some issues") {
-        val evaluator = newEvaluatorWithConfigurationProperties(Map("spark.serializer" -> "org.apache.spark.serializer.FooSerializer"))
+        evaluator.shuffleAndDynamicAllocationSeverity should be(Severity.MODERATE)
         evaluator.severity should be(Severity.MODERATE)
       }
 
-      it("computes the overall severity when there are no issues") {
-        val evaluator = newEvaluatorWithConfigurationProperties(Map.empty)
+      it("has no dynamic allocation flag and shuffle flag, and serializer setting matches our recommendation") {
+        val evaluator = newEvaluatorWithConfigurationProperties(Map("spark.serializer" -> "org.apache.spark.serializer.KryoSerializer"))
+        evaluator.serializer should be(Some("org.apache.spark.serializer.KryoSerializer"))
+        evaluator.isDynamicAllocationEnabled should be(Some(false))
+        evaluator.isShuffleServiceEnabled should be(Some(false))
+        evaluator.serializerSeverity should be(Severity.NONE)
+        evaluator.shuffleAndDynamicAllocationSeverity should be(Severity.MODERATE)
+        evaluator.severity should be(Severity.MODERATE)
+      }
+
+      it("has no dynamic allocation flag and shuffle flag, and serializer setting doesn't match our recommendation and is non-null") {
+        val evaluator = newEvaluatorWithConfigurationProperties(Map("spark.serializer" -> "org.apache.spark.serializer.FooSerializer"))
+        evaluator.serializer should be(Some("org.apache.spark.serializer.FooSerializer"))
+        evaluator.isDynamicAllocationEnabled should be(Some(false))
+        evaluator.isShuffleServiceEnabled should be(Some(false))
+        evaluator.serializerSeverity should be(Severity.MODERATE)
+        evaluator.shuffleAndDynamicAllocationSeverity should be(Severity.MODERATE)
+        evaluator.severity should be(Severity.MODERATE)
+      }
+
+      it("true dynamic allocation flag and shuffle flag, and serializer setting matches our recommendation") {
+        val evaluator = newEvaluatorWithConfigurationProperties(Map("spark.serializer" -> "org.apache.spark.serializer.KryoSerializer",
+          "spark.shuffle.service.enabled" -> "true", "spark.dynamicAllocation.enabled" -> "true"))
+        evaluator.serializer should be(Some("org.apache.spark.serializer.KryoSerializer"))
+        evaluator.isDynamicAllocationEnabled should be(Some(true))
+        evaluator.isShuffleServiceEnabled should be(Some(true))
+        evaluator.serializerSeverity should be(Severity.NONE)
+        evaluator.shuffleAndDynamicAllocationSeverity should be(Severity.NONE)
         evaluator.severity should be(Severity.NONE)
+      }
+
+      it("true dynamic allocation flag and shuffle flag, and serializer setting is absent") {
+        val evaluator = newEvaluatorWithConfigurationProperties(Map("spark.shuffle.service.enabled" -> "true",
+          "spark.dynamicAllocation.enabled" -> "true"))
+        evaluator.serializer should be(None)
+        evaluator.isDynamicAllocationEnabled should be(Some(true))
+        evaluator.isShuffleServiceEnabled should be(Some(true))
+        evaluator.serializerSeverity should be(Severity.MODERATE)
+        evaluator.shuffleAndDynamicAllocationSeverity should be(Severity.NONE)
+        evaluator.severity should be(Severity.MODERATE)
+      }
+
+      it("true dynamic allocation flag and false shuffle flag, and serializer setting matches our recommendation") {
+        val evaluator = newEvaluatorWithConfigurationProperties(Map("spark.serializer" -> "org.apache.spark.serializer.KryoSerializer",
+          "spark.shuffle.service.enabled" -> "false", "spark.dynamicAllocation.enabled" -> "true"))
+        evaluator.serializer should be(Some("org.apache.spark.serializer.KryoSerializer"))
+        evaluator.isDynamicAllocationEnabled should be(Some(true))
+        evaluator.isShuffleServiceEnabled should be(Some(false))
+        evaluator.serializerSeverity should be(Severity.NONE)
+        evaluator.shuffleAndDynamicAllocationSeverity should be(Severity.SEVERE)
+        evaluator.severity should be(Severity.SEVERE)
+      }
+
+      it("false dynamic allocation flag and shuffle flag, and serializer setting matches our recommendation") {
+        val evaluator = newEvaluatorWithConfigurationProperties(Map("spark.serializer" -> "org.apache.spark.serializer.KryoSerializer",
+          "spark.shuffle.service.enabled" -> "false", "spark.dynamicAllocation.enabled" -> "false"))
+        evaluator.serializer should be(Some("org.apache.spark.serializer.KryoSerializer"))
+        evaluator.isDynamicAllocationEnabled should be(Some(false))
+        evaluator.isShuffleServiceEnabled should be(Some(false))
+        evaluator.serializerSeverity should be(Severity.NONE)
+        evaluator.shuffleAndDynamicAllocationSeverity should be(Severity.MODERATE)
+        evaluator.severity should be(Severity.MODERATE)
       }
     }
   }
@@ -186,8 +283,13 @@ object ConfigurationHeuristicTest {
     )
 
     val appId = "application_1"
+    val startDate = new Date()
+    val endDate = new Date(startDate.getTime() + 10000)
+    val applicationAttempt = new ApplicationAttemptInfoImpl(Option("attempt1"),startDate, endDate, "sparkUser")
+    val applicationAttempts = Seq(applicationAttempt)
+
     val restDerivedData = SparkRestDerivedData(
-      new ApplicationInfo(appId, name = "app", Seq.empty),
+      new ApplicationInfoImpl(appId, name = "app", applicationAttempts),
       jobDatas = Seq.empty,
       stageDatas = Seq.empty,
       executorSummaries = Seq.empty
