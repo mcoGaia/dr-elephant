@@ -73,13 +73,13 @@ class StagesHeuristicTest extends FunSpec with Matchers {
       }
 
       it("returns the stage failure rate") {
-        heuristicResultDetails.get(2).getValue should be("0.200")
+        heuristicResultDetails.get(2).getValue should be("0,200")
       }
 
       it("returns the list of stages with high task failure rates") {
         heuristicResultDetails.get(3).getValue should be(
-          s"""|stage 3, attempt 0 (task failure rate: 0.600)
-              |stage 4, attempt 0 (task failure rate: 0.800)""".stripMargin
+          s"""|stage 3, attempt 0 (task failure rate: 0,600)
+              |stage 4, attempt 0 (task failure rate: 0,800)""".stripMargin
         )
       }
 
