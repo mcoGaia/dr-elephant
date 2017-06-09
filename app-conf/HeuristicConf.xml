@@ -17,13 +17,14 @@
 <!-- Heuristics configurations, each heuristic will be loaded by a particular analyser -->
 <heuristics>
 
+<!--
   <heuristic>
     <applicationtype>mapreduce</applicationtype>
     <heuristicname>Hello World! heuristic</heuristicname>
     <classname>com.linkedin.drelephant.mapreduce.heuristics.HelloWorldHeuristic</classname>
     <viewname>views.html.help.mapreduce.helpHelloWorld</viewname>
   </heuristic>
-
+-->
   <!-- MAP-REDUCE HEURISTICS -->
 
   <heuristic>

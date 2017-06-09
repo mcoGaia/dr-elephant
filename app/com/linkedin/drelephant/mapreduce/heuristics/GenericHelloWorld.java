@@ -80,6 +80,7 @@ public abstract class GenericHelloWorld implements Heuristic<MapReduceApplicatio
 
     result.addResultDetail("Total in = ", data.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT) + "");
     result.addResultDetail("Total out = ", data.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT) + "");
+    result.addResultDetail("in|out", data.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT) + "|" +data.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT));
 
     return result;
   }
