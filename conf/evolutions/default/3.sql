@@ -12,6 +12,8 @@ alter table yarn_app_result add column output_card      BIGINT        UNSIGNED D
 alter table yarn_app_result drop resource_used;
 alter table yarn_app_result drop resource_wasted;
 alter table yarn_app_result drop total_delay;
+alter table yarn_app_result drop input_card;
+alter table yarn_app_result drop output_card;
 
 
 
