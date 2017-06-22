@@ -14,7 +14,8 @@
 * the License.
 *@
 
-@(numJobsAnalyzed: Int, numJobsSevere: Int, numJobsCritical: Int)(results: Html)
+@(hello: Int, severe : Int, critical : Int)(results: Html)
+
 
 @*
 * The layout of the homepage of Dr. Elephant or the dashboard
@@ -25,11 +26,17 @@
 * @param results The results to be displayed on the dashboard
 *@
 
-@newmain("Dr. Elephant - filterCu4", "filterCu4") {
+@main("Dr. Elephant - filterCu4", "filterCu4") {
+
   <div class="jumbotron">
-
-    <h2>Hello World!</h2>
-
+    <h2>Filter for CU4_*</h2>
+    <p>I looked through <b>@hello</b> CU4_* jobs.<br>
+      About <b>@severe</b> of them could use some tuning.<br>
+      About <b>@critical</b> of them need some serious attention!
+    </p>
   </div>
+
   @results
+
+
 }

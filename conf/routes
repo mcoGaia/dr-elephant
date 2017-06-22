@@ -32,6 +32,10 @@ GET        /newflowhistory                      controllers.Application.flowHist
 GET        /newjobhistory                       controllers.Application.jobHistory()
 GET        /newhelp                             controllers.Application.help()
 
+## filter
+
+GET        /filterPage                          controllers.Application.filter()
+
 # Rest calls
 GET        /rest/job                            controllers.Application.restAppResult(id: String)
 GET        /rest/jobexec                        controllers.Application.restJobExecResult(id: String)

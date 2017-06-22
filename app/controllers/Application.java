@@ -18,6 +18,7 @@ package controllers;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Query;
+//import com.avaje.ebean.Expr;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -71,6 +72,10 @@ import views.html.results.oldJobHistoryResults;
 import views.html.results.oldFlowMetricsHistoryResults;
 import views.html.results.oldJobMetricsHistoryResults;
 import views.html.results.searchResults;
+
+import views.html.page.filterCu4Page;
+import views.html.page.filterPage;
+
 
 import views.html.page.oldFlowHistoryPage;
 import views.html.page.oldJobHistoryPage;
@@ -129,6 +134,64 @@ public class Application extends Controller {
   */
   public static Result serveAsset(String path) {
     return ok(index.render());
+  }
+
+  /**
+   * Controls the Filter Feature
+   */
+  public static Result filter() {
+
+    DynamicForm form = Form.form().bindFromRequest(request());
+    String cu4 = form.get("Cu4");  //si cu4 coche on recupere "CU4_", null sinon
+    String cu6 = form.get("Cu6");
+    String cu8 = form.get("Cu8");
+    String str = new String("  (filtering for ");
+
+    if (cu4!=null) str += "Cu4, ";
+    if (cu6!=null) str += "Cu6, ";
+    if (cu8!=null) str += "Cu8, ";
+
+    str = str.substring(0, str.length()-2);
+    str+=" jobs)";
+
+    PaginationStats paginationStats = new PaginationStats(PAGE_LENGTH, PAGE_BAR_LENGTH);
+    int pageLength = paginationStats.getPageLength();
+    paginationStats.setCurrentPage(1);
+    final Map<String, String[]> searchString = request().queryString();
+    if (searchString.containsKey(PAGE)) {
+      try {
+        paginationStats.setCurrentPage(Integer.parseInt(searchString.get(PAGE)[0]));
+      } catch (NumberFormatException ex) {
+        logger.error("Error parsing page number. Setting current page to 1.");
+        paginationStats.setCurrentPage(1);
+      }
+    }
+    int currentPage = paginationStats.getCurrentPage();
+    int paginationBarStartIndex = paginationStats.getPaginationBarStartIndex();
+
+    // Filter jobs by search parameters
+    Query<AppResult> query = generateSearchQuery(AppResult.getSearchFields(), getSearchParams());
+    List<AppResult> result = query.setFirstRow((paginationBarStartIndex - 1) * pageLength)
+                                  .setMaxRows((paginationStats.getPageBarLength() - 1) * pageLength + 1)
+                                  .where()
+                                  .disjunction()
+                                  .ilike(AppResult.TABLE.NAME, cu4 + "%")
+                                  .ilike(AppResult.TABLE.NAME, cu6 + "%")
+                                  .ilike(AppResult.TABLE.NAME, cu8 + "%")
+                                  .endJunction()
+                                  .order()
+                                  .desc(AppResult.TABLE.FINISH_TIME)
+                                  .findList();
+
+    paginationStats.setQueryString(getQueryString());
+    if (result.isEmpty() || currentPage > paginationStats.computePaginationBarEndIndex(result.size())) {
+      return ok(filterPage.render(null, jobDetails.render(null)));
+    } else {
+      List<AppResult> resultsToDisplay = result.subList((currentPage - paginationBarStartIndex) * pageLength,
+              Math.min(result.size(), (currentPage - paginationBarStartIndex + 1) * pageLength));
+      return ok(filterPage.render(paginationStats, searchResults.render(
+              String.format("Results: Showing %,d of %,d " + str, resultsToDisplay.size(), query.findRowCount()), resultsToDisplay)));
+    }
   }
 
   /**
