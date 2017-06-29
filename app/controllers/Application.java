@@ -145,11 +145,13 @@ public class Application extends Controller {
     String cu4 = form.get("Cu4");  //si cu4 coche on recupere "CU4_", null sinon
     String cu6 = form.get("Cu6");
     String cu8 = form.get("Cu8");
+    String exception = form.get("Exception");
     String str = new String("  (filtering for ");
 
     if (cu4!=null) str += "Cu4, ";
     if (cu6!=null) str += "Cu6, ";
     if (cu8!=null) str += "Cu8, ";
+    if (exception!=null) str += "Exception, ";
 
     str = str.substring(0, str.length()-2);
     str+=" jobs)";
@@ -171,7 +173,26 @@ public class Application extends Controller {
 
     // Filter jobs by search parameters
     Query<AppResult> query = generateSearchQuery(AppResult.getSearchFields(), getSearchParams());
-    List<AppResult> result = query.setFirstRow((paginationBarStartIndex - 1) * pageLength)
+    List<AppResult> result;
+    
+    if (exception!=null && (cu4!=null || cu6!=null || cu8!=null))  // exception avec soit cu4-6-8 coche
+    
+    result = query.setFirstRow((paginationBarStartIndex - 1) * pageLength)
+                                  .setMaxRows((paginationStats.getPageBarLength() - 1) * pageLength + 1)
+                                  .where()
+                                  .conjunction()
+                                  .eq(AppResult.TABLE.APP_HEURISTIC_RESULTS + "." + AppHeuristicResult.TABLE.HEURISTIC_NAME, exception)
+                                  .disjunction()
+                                  .ilike(AppResult.TABLE.NAME, cu4 + "%")
+                                  .ilike(AppResult.TABLE.NAME, cu6 + "%")
+                                  .ilike(AppResult.TABLE.NAME, cu8 + "%")
+                                  .endJunction()
+                                  .endJunction()
+                                  .order()
+                                  .desc(AppResult.TABLE.FINISH_TIME)
+                                  .findList();
+    else if (exception==null)  //pas d'exception
+        result = query.setFirstRow((paginationBarStartIndex - 1) * pageLength)
                                   .setMaxRows((paginationStats.getPageBarLength() - 1) * pageLength + 1)
                                   .where()
                                   .disjunction()
@@ -182,6 +203,14 @@ public class Application extends Controller {
                                   .order()
                                   .desc(AppResult.TABLE.FINISH_TIME)
                                   .findList();
+    else // ttes le exceptions
+         result = query.setFirstRow((paginationBarStartIndex - 1) * pageLength)
+                                  .setMaxRows((paginationStats.getPageBarLength() - 1) * pageLength + 1)
+                                  .where()
+                                  .eq(AppResult.TABLE.APP_HEURISTIC_RESULTS + "." + AppHeuristicResult.TABLE.HEURISTIC_NAME, exception)
+                                  .order()
+                                  .desc(AppResult.TABLE.FINISH_TIME)
+                                  .findList();                               
 
     paginationStats.setQueryString(getQueryString());
     if (result.isEmpty() || currentPage > paginationStats.computePaginationBarEndIndex(result.size())) {

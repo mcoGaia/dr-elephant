@@ -20,6 +20,9 @@ import com.linkedin.drelephant.configurations.scheduler.SchedulerConfigurationDa
 import java.util.Properties;
 import org.apache.log4j.Logger;
 
+import org.apache.hadoop.conf.Configuration;
+
+import java.util.*;
 
 /**
  * This class provides methods to load information specific to the Azkaban scheduler.
@@ -28,11 +31,11 @@ public class PhoebusScheduler implements Scheduler {
 
   private static final Logger logger = Logger.getLogger(PhoebusScheduler.class);
 
-  public static final String AZKABAN_WORKFLOW_URL = "azkaban.link.workflow.url";
-  public static final String AZKABAN_JOB_URL = "azkaban.link.job.url";
-  public static final String AZKABAN_EXECUTION_URL = "azkaban.link.execution.url";
-  public static final String AZKABAN_ATTEMPT_URL = "azkaban.link.attempt.url";
-  public static final String AZKABAN_JOB_NAME = "azkaban.job.id";
+//  public static final String AZKABAN_WORKFLOW_URL = "azkaban.link.workflow.url";
+//  public static final String AZKABAN_JOB_URL = "azkaban.link.job.url";
+//  public static final String AZKABAN_EXECUTION_URL = "azkaban.link.execution.url";
+//  public static final String AZKABAN_ATTEMPT_URL = "azkaban.link.attempt.url";
+//  public static final String AZKABAN_JOB_NAME = "azkaban.job.id";
 
   private String schedulerName;
   private String jobDefId;
@@ -59,11 +62,28 @@ public class PhoebusScheduler implements Scheduler {
   }
 
   private void loadInfo(String appId, Properties properties) {
+  /*
+      final String str = new Configuration().get("mapreduce.jobhistory.webapp.address");
+    String _jhistoryWebAddr = "http://" + str + "/jobhistory/job/";
+    
+    final String def = new Configuration().get("gaia.logger.stage");
+    
+    //def == null ? jobDefId = "jobDefId" : jobDefId = def;
+    
+    if (def == null)
+      jobDefId = "jobDefId";
+    else
+      jobDefId = def;
+
+   Set set=properties.entrySet();
+   logger.info(String.format("affichage des valeurs de Properties : %s", set.toString()));
+  
+  
     // Update the 4 Ids
-    jobDefId = "jobDefId";// properties.getProperty(AZKABAN_JOB_URL);
-    jobExecId = appId+" jobExecId"; //properties.getProperty(AZKABAN_ATTEMPT_URL);
-    flowDefId = "flowDefId"; //properties.getProperty(AZKABAN_WORKFLOW_URL);
-    flowExecId = appId+" flowExecId"; //properties.getProperty(AZKABAN_EXECUTION_URL);
+    jobDefId = properties.getProperty("gaia.logger.stage");  //CU6_Daily_Insertion
+    jobExecId = appId; 
+    flowDefId = "flowDefId"; 
+    flowExecId = appId+" flowExecId";
 
     // For Azkaban, The url and ids are the same
     jobExecUrl = jobExecId;
@@ -73,6 +93,20 @@ public class PhoebusScheduler implements Scheduler {
 
     workflowDepth = 0; // TODO: Add sub-workflow support
     jobName = "jobName"; //properties.getProperty(AZKABAN_JOB_NAME);
+    */
+        jobDefId = properties.getProperty("gaia.logger.stage");  //CU6_Daily_Insertion "workplan"
+    jobExecId = appId;
+    flowDefId = "flowDefId";
+    flowExecId = appId+" flowExecId";
+
+    // For Azkaban, The url and ids are the same
+    jobExecUrl = jobExecId;
+    jobDefUrl = jobDefId;
+    flowExecUrl = flowExecId;
+    flowDefUrl = flowDefId;
+
+    workflowDepth = 0; // TODO: Add sub-workflow support
+    jobName = properties.getProperty("mapreduce.job.name"); //properties.getProperty(AZKABAN_JOB_NAME);
   }
 
   @Override

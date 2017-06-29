@@ -26,6 +26,8 @@
 *@
 
 @main("Dr. Elephant", "dashboard") {
+
+
   <div class="jumbotron">
     <h2>Hello there, I've been busy!</h2>
     <p>I looked through <b>@numJobsAnalyzed</b> jobs today.<br>
@@ -33,5 +35,8 @@
       About <b>@numJobsCritical</b> of them need some serious attention!
     </p>
   </div>
+  
+  <!-- <img src='@routes.Assets.at("images/usedmemory.png")' class="metrics-icons" alt='used resources'/> -->
+  
   @results
 }
