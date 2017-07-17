@@ -62,42 +62,43 @@ public class PhoebusScheduler implements Scheduler {
   }
 
   private void loadInfo(String appId, Properties properties) {
-  /*
-      final String str = new Configuration().get("mapreduce.jobhistory.webapp.address");
-    String _jhistoryWebAddr = "http://" + str + "/jobhistory/job/";
-    
-    final String def = new Configuration().get("gaia.logger.stage");
-    
-    //def == null ? jobDefId = "jobDefId" : jobDefId = def;
-    
-    if (def == null)
-      jobDefId = "jobDefId";
-    else
-      jobDefId = def;
 
-   Set set=properties.entrySet();
-   logger.info(String.format("affichage des valeurs de Properties : %s", set.toString()));
-  
-  
-    // Update the 4 Ids
-    jobDefId = properties.getProperty("gaia.logger.stage");  //CU6_Daily_Insertion
-    jobExecId = appId; 
-    flowDefId = "flowDefId"; 
-    flowExecId = appId+" flowExecId";
 
-    // For Azkaban, The url and ids are the same
-    jobExecUrl = jobExecId;
-    jobDefUrl = jobDefId;
-    flowExecUrl = flowExecId;
-    flowDefUrl = flowDefId;
 
     workflowDepth = 0; // TODO: Add sub-workflow support
-    jobName = "jobName"; //properties.getProperty(AZKABAN_JOB_NAME);
-    */
-        jobDefId = properties.getProperty("gaia.logger.stage");  //CU6_Daily_Insertion "workplan"
+
+
+    
+    String subStage = properties.getProperty("gaia.logger.substage");
+
+    subStage = subStage==null?"":subStage.trim();
+    String[] parts = subStage.split(" ");
+    subStage = parts[parts.length-1].replaceAll("\"", ""); // 034556
+    
+    String stage = properties.getProperty("gaia.logger.stage");
+    stage = stage==null?"":stage.trim();
+    
+    String name = properties.getProperty("cascading.app.name");
+    name = name==null?"":name.trim();
+    
+    String stepNum = properties.getProperty("cascading.flow.step.num");
+    stepNum = stepNum==null?"":stepNum.trim();
+
+    jobDefId =  stage + "_" +
+                subStage + "_" +
+                name + "_" +
+                stepNum;
+       
+    jobDefId = jobDefId.replaceAll(" ", "-");
+      
+
+        
     jobExecId = appId;
-    flowDefId = "flowDefId";
-    flowExecId = appId+" flowExecId";
+    
+    
+    
+    flowDefId = "flowDefId";          //TODO
+    flowExecId = appId+" flowExecId"; //TODO
 
     // For Azkaban, The url and ids are the same
     jobExecUrl = jobExecId;

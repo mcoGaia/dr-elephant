@@ -439,6 +439,27 @@ public final class Utils {
     }
     return totalWastedResources;
   }
+  
+  
+  public static long getTotalIn(List<AppResult> resultList) {
+    long total = 0;
+    for (AppResult result : resultList) {
+      total += result.inputCard;
+    }
+    return total;
+  }
+  
+  
+  public static long getTotalOut(List<AppResult> resultList) {
+    long total = 0;
+    for (AppResult result : resultList) {
+      total += result.outputCard;
+    }
+    return total;
+  }
+  
+  
+  
 
   /**
    * Returns the total runtime of the job list i.e. last finished job - first started job

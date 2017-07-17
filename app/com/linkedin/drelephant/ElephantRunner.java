@@ -202,7 +202,11 @@ public class ElephantRunner implements Runnable {
         logger.info(ExceptionUtils.getStackTrace(e));
 
         Thread.currentThread().interrupt();
-      } catch (Exception e) {
+      } catch (java.io.FileNotFoundException ex) { //catch java.io.FileNotFoundException: http://gaia0:19888/ws/v1/history/mapreduce/jobs/job_1498746689175_0408/conf
+      
+           logger.info("informations about [" + _analyticJob.getAppId() + "] deleted from jobhistory");
+      
+      }catch (Exception e) {
         logger.error(e.getMessage());
         logger.error(ExceptionUtils.getStackTrace(e));
 
