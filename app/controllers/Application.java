@@ -137,6 +137,15 @@ public class Application extends Controller {
   public static Result serveAsset(String path) {
     return ok(index.render());
   }
+  
+
+  public static Result preflight(String all) {
+    response().setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+    response().setHeader("Access-Control-Allow-Headers", "X-Requested-With, accept, content-type, Origin, X-Json");
+    response().setHeader("Access-Control-Allow-Origin", "*"); //http://tu-gjt-q01:5777
+    response().setHeader("Access-Control-Request-Headers", "X-Requested-With, accept, content-type, Origin, X-Json");
+    return ok();
+}
 
   /**
    * Controls the Filter Feature

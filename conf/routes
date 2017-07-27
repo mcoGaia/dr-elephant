@@ -69,3 +69,5 @@ GET        /healthcheck                         controllers.MetricsController.he
 GET        /assets/*file                        controllers.Assets.at(path="/public", file)
 GET        /new                                 controllers.Application.serveAsset(path="index.html")
 GET        /new/*path                           controllers.Application.serveAsset(path)
+
+OPTIONS /*all                                   controllers.Application.preflight(all)
