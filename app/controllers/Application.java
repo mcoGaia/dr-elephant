@@ -59,6 +59,7 @@ import views.html.help.metrics.helpRuntime;
 import views.html.help.metrics.helpWaittime;
 import views.html.help.metrics.helpUsedResources;
 import views.html.help.metrics.helpWastedResources;
+import views.html.help.metrics.helpSagaCounters;
 import views.html.index;
 import views.html.page.comparePage;
 import views.html.page.flowHistoryPage;
@@ -953,6 +954,7 @@ public class Application extends Controller {
     metricsViewMap.put(Metrics.WAIT_TIME.getText(), helpWaittime.render());
     metricsViewMap.put(Metrics.USED_RESOURCES.getText(), helpUsedResources.render());
     metricsViewMap.put(Metrics.WASTED_RESOURCES.getText(), helpWastedResources.render());
+    metricsViewMap.put(Metrics.SAGA_COUNTERS.getText(), helpSagaCounters.render());
     return metricsViewMap;
   }
   /**

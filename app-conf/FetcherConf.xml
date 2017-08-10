@@ -33,7 +33,8 @@
     <applicationtype>mapreduce</applicationtype>
     <classname>com.linkedin.drelephant.mapreduce.fetchers.MapReduceFetcherHadoop2</classname>
     <params>
-      <sampling_enabled>false</sampling_enabled>
+      <sampling_enabled>true</sampling_enabled>
+      <max_sample_size>200</max_sample_size>
     </params>
   </fetcher>
   <!--

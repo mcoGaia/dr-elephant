@@ -27,6 +27,9 @@ import models.AppHeuristicResultDetails;
 import models.AppResult;
 import org.apache.log4j.Logger;
 
+import com.linkedin.drelephant.mapreduce.data.MapReduceApplicationData;
+import com.linkedin.drelephant.mapreduce.fetchers.MapReduceFetcher;
+
 
 /**
  * This class wraps some basic meta data of a completed application run (notice that the information is generally the
@@ -37,7 +40,8 @@ public class AnalyticJob {
 
   private static final String UNKNOWN_JOB_TYPE = "Unknown";   // The default job type when the data matches nothing.
   private static final int _RETRY_LIMIT = 3;                  // Number of times a job needs to be tried before dropping
-  private static final String EXCLUDE_JOBTYPE = "exclude_jobtypes_filter"; // excluded Job Types for heuristic
+  private static final String EXCLUDE_JOBTYPE = "exclude_jobtypes_filter"; // excluded Job Types for heuristic  
+  protected static final int MAX_SAMPLE_SIZE = 200;  //Sample size
 
   private int _retries = 0;
   private ApplicationType _type;
@@ -257,6 +261,7 @@ public class AnalyticJob {
     }
 
 
+
     HadoopMetricsAggregator hadoopMetricsAggregator = ElephantContext.instance().getAggregatorForApplicationType(getAppType());
     hadoopMetricsAggregator.aggregate(data);
     HadoopAggregatedData hadoopAggregatedData = hadoopMetricsAggregator.getResult();
@@ -271,10 +276,18 @@ public class AnalyticJob {
     result.finishTime = getFinishTime();
     result.name = Utils.truncateField(getName(), AppResult.APP_NAME_LIMIT, getAppId());
     result.jobType = Utils.truncateField(jobTypeName, AppResult.JOBTYPE_LIMIT, getAppId());
-    result.resourceUsed = hadoopAggregatedData.getResourceUsed();
     result.totalDelay = hadoopAggregatedData.getTotalDelay();
-    result.resourceWasted = hadoopAggregatedData.getResourceWasted();
-    
+    //(((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length > MAX_SAMPLE_SIZE) = nombre total de taches du job
+    if ( ((MapReduceFetcher)fetcher).isSamplingEnabled() && (((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length > MAX_SAMPLE_SIZE))
+      result.resourceUsed = hadoopAggregatedData.getResourceUsed()* (((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length) / MAX_SAMPLE_SIZE;
+    else
+      result.resourceUsed = hadoopAggregatedData.getResourceUsed();
+    logger.info("Number of tasks of [" + ((MapReduceApplicationData)data).getAppId() + "] = " + (((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length));
+    if ( ((MapReduceFetcher)fetcher).isSamplingEnabled() && (((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length > MAX_SAMPLE_SIZE))
+      result.resourceWasted = hadoopAggregatedData.getResourceWasted()* (((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length) / MAX_SAMPLE_SIZE;
+    else
+      result.resourceWasted = hadoopAggregatedData.getResourceWasted();
+
     //in/out
     result.inputCard = hadoopAggregatedData.getInputCard();
     result.outputCard = hadoopAggregatedData.getOutputCard(); 

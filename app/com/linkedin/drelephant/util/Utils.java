@@ -521,16 +521,38 @@ public final class Utils {
     return totalWaittime;
   }
   
-
-    public static String getStrInOut(long in, long out) {
-      return String.valueOf(in) + ":" + String.valueOf(out);
-  }
-  
   public static long sum (List<Long> values) {
     long cpt = 0;
     for (Long v : values)
       cpt += v;
     return cpt;
   }
+
+  static String round (long in) {
+
+    int i = 0;
+    String inStr = String.valueOf(in);
+    int NumberOfDigitsIn = inStr.length();
+    String str = "";
+
+    for (i = 0; i<inStr.length(); ++i) {
+      str += inStr.charAt(i);
+      --NumberOfDigitsIn;
+      if (NumberOfDigitsIn%3 == 0 && NumberOfDigitsIn != 0) {
+        str+='\'';
+      }
+    }
+    return str;
+  }
+
+  public static String getStrInOut(long in, long out) {
+      return round(in) + " : " + round(out);
+  }
+  
+   public static String getStrInOutLabel(long in, long out) {
+      return String.valueOf(in) + " : " + String.valueOf(out);
+  }
+  
+  
 
 }

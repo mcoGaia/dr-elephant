@@ -44,7 +44,7 @@ public abstract class MapReduceFetcher implements ElephantFetcher<MapReduceAppli
     if (_samplingEnabled) {
       if (taskList.size() > MAX_SAMPLE_SIZE) {
         logger.info(jobId + " needs sampling.");
-        Collections.shuffle(taskList);
+        Collections.shuffle(taskList); 
       }
       return Math.min(taskList.size(), MAX_SAMPLE_SIZE);
     }
