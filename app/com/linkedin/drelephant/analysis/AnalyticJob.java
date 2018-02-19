@@ -41,7 +41,7 @@ public class AnalyticJob {
   private static final String UNKNOWN_JOB_TYPE = "Unknown";   // The default job type when the data matches nothing.
   private static final int _RETRY_LIMIT = 3;                  // Number of times a job needs to be tried before dropping
   private static final String EXCLUDE_JOBTYPE = "exclude_jobtypes_filter"; // excluded Job Types for heuristic  
-  protected static final int MAX_SAMPLE_SIZE = 200;  //Sample size
+  protected static final int MAX_SAMPLE_SIZE = 2000;  //Sample size
 
   private int _retries = 0;
   private ApplicationType _type;
@@ -283,6 +283,7 @@ public class AnalyticJob {
     else
       result.resourceUsed = hadoopAggregatedData.getResourceUsed();
     logger.info("Number of tasks of [" + ((MapReduceApplicationData)data).getAppId() + "] = " + (((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length));
+    logger.info("[" + ((MapReduceApplicationData)data).getAppId() + "], hadoopAggregatedData.getResourceUsed() = " + hadoopAggregatedData.getResourceUsed() + ((((MapReduceFetcher)fetcher).isSamplingEnabled())?" with sampling enabled":" with sampling disabled"));
     if ( ((MapReduceFetcher)fetcher).isSamplingEnabled() && (((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length > MAX_SAMPLE_SIZE))
       result.resourceWasted = hadoopAggregatedData.getResourceWasted()* (((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length) / MAX_SAMPLE_SIZE;
     else

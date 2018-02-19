@@ -27,7 +27,7 @@ import java.util.List;
 
 public abstract class MapReduceFetcher implements ElephantFetcher<MapReduceApplicationData> {
   private static final Logger logger = Logger.getLogger(MapReduceFetcher.class);
-  protected static final int MAX_SAMPLE_SIZE = 200;
+  protected static final int MAX_SAMPLE_SIZE = 2000;
   protected static final String SAMPLING_ENABLED_XML_FIELD = "sampling_enabled";
 
   protected FetcherConfigurationData _fetcherConfigurationData;
