@@ -34,6 +34,8 @@
           <!--<private_key>/home/key/private_key</private_key>-->
           <!--<userame>elephant</userame>-->
           <!--<password></password>-->
+          <!--<flowtimefield>flowExecId</flowtimefield>-->
+          <!--<flowtimetype>yyyy-MM-dd'T'HH:mm:ss</flowtimetype>-->
         </params>
     </scheduler>
 
@@ -62,6 +64,7 @@
             -->
         </params>
     </scheduler>
+
     
     
     <!-- Phoebus scheduler -->        
@@ -75,6 +78,13 @@
     
     <!-- /Phoebus scheduler -->
                     
+
+
+    <scheduler>
+        <name>pinball</name>
+        <classname>com.linkedin.drelephant.schedulers.PinballScheduler</classname>
+    </scheduler>
+
 
     <scheduler>
        <name>no_scheduler</name>

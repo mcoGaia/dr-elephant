@@ -18,9 +18,11 @@ package controllers;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Query;
+
 import com.avaje.ebean.SqlQuery;
 import com.avaje.ebean.SqlRow;
 import com.avaje.ebean.Ebean;
+
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -59,7 +61,9 @@ import views.html.help.metrics.helpRuntime;
 import views.html.help.metrics.helpWaittime;
 import views.html.help.metrics.helpUsedResources;
 import views.html.help.metrics.helpWastedResources;
+
 import views.html.help.metrics.helpSagaCounters;
+
 import views.html.index;
 import views.html.page.comparePage;
 import views.html.page.flowHistoryPage;
@@ -86,6 +90,9 @@ import views.html.results.jobHistoryResults;
 import views.html.results.flowHistoryResults;
 import views.html.results.flowMetricsHistoryResults;
 import views.html.results.jobMetricsHistoryResults;
+
+import views.html.results.*;
+
 import views.html.page.oldHelpPage;
 
 import com.google.gson.*;
@@ -138,6 +145,7 @@ public class Application extends Controller {
   public static Result serveAsset(String path) {
     return ok(index.render());
   }
+
   
 
   public static Result preflight(String all) {
@@ -234,6 +242,7 @@ public class Application extends Controller {
               String.format("Results: Showing %,d of %,d " + str, resultsToDisplay.size(), query.findRowCount()), resultsToDisplay)));
     }
   }
+
 
   /**
    * Controls the Home page of Dr. Elephant.
@@ -345,6 +354,9 @@ public class Application extends Controller {
     String partialFlowExecId = form.get(FLOW_EXEC_ID);
     partialFlowExecId = (partialFlowExecId != null) ? partialFlowExecId.trim() : null;
 
+    String jobDefId = form.get(JOB_DEF_ID);
+    jobDefId = jobDefId != null ? jobDefId.trim() : "";
+
     // Search and display job details when job id or flow execution url is provided.
     if (!appId.isEmpty()) {
       AppResult result = AppResult.find.select("*")
@@ -364,6 +376,21 @@ public class Application extends Controller {
           .findList();
       Map<IdUrlPair, List<AppResult>> map = ControllerUtil.groupJobs(results, ControllerUtil.GroupBy.JOB_EXECUTION_ID);
       return ok(searchPage.render(null, flowDetails.render(flowExecPair, map)));
+
+    } else if (!jobDefId.isEmpty()) {
+      List<AppResult> results = AppResult.find
+          .select(AppResult.getSearchFields() + "," + AppResult.TABLE.JOB_DEF_ID)
+          .fetch(AppResult.TABLE.APP_HEURISTIC_RESULTS, AppHeuristicResult.getSearchFields())
+          .where()
+          .eq(AppResult.TABLE.JOB_DEF_ID, jobDefId)
+          .findList();
+      Map<IdUrlPair, List<AppResult>> map = ControllerUtil.groupJobs(results, ControllerUtil.GroupBy.FLOW_EXECUTION_ID);
+
+      String flowDefId = (results.isEmpty()) ? "" :  results.get(0).flowDefId;  // all results should have the same flow id
+      IdUrlPair flowDefIdPair = new IdUrlPair(flowDefId, AppResult.TABLE.FLOW_DEF_URL);
+
+      return ok(searchPage.render(null, flowDefinitionIdDetails.render(flowDefIdPair, map)));
+
     }
 
     // Prepare pagination of results
@@ -377,6 +404,9 @@ public class Application extends Controller {
       } catch (NumberFormatException ex) {
         logger.error("Error parsing page number. Setting current page to 1.");
         paginationStats.setCurrentPage(1);
+/*
+<<<<<<< HEAD
+*/
       }
     }
     int currentPage = paginationStats.getCurrentPage();
@@ -511,6 +541,144 @@ public class Application extends Controller {
         query = query.le(AppResult.TABLE.FINISH_TIME, time);
       }
     }
+/*
+=======
+      }
+    }
+    int currentPage = paginationStats.getCurrentPage();
+    int paginationBarStartIndex = paginationStats.getPaginationBarStartIndex();
+
+    // Filter jobs by search parameters
+    Query<AppResult> query = generateSearchQuery(AppResult.getSearchFields(), getSearchParams());
+    List<AppResult> results = query.setFirstRow((paginationBarStartIndex - 1) * pageLength)
+        .setMaxRows((paginationStats.getPageBarLength() - 1) * pageLength + 1)
+        .fetch(AppResult.TABLE.APP_HEURISTIC_RESULTS, AppHeuristicResult.getSearchFields())
+        .findList();
+    paginationStats.setQueryString(getQueryString());
+    if (results.isEmpty() || currentPage > paginationStats.computePaginationBarEndIndex(results.size())) {
+      return ok(searchPage.render(null, jobDetails.render(null)));
+    } else {
+      List<AppResult> resultsToDisplay = results.subList((currentPage - paginationBarStartIndex) * pageLength,
+              Math.min(results.size(), (currentPage - paginationBarStartIndex + 1) * pageLength));
+      return ok(searchPage.render(paginationStats, searchResults.render(
+              String.format("Results: Showing %,d of %,d", resultsToDisplay.size(), query.findRowCount()), resultsToDisplay)));
+    }
+  }
+
+  /**
+   * Parses the request for the queryString
+   *
+   * @return URL Encoded String of Parameter Value Pair
+   *
+  public static String getQueryString() {
+    List<BasicNameValuePair> fields = new LinkedList<BasicNameValuePair>();
+    final Set<Map.Entry<String, String[]>> entries = request().queryString().entrySet();
+    for (Map.Entry<String, String[]> entry : entries) {
+      final String key = entry.getKey();
+      final String value = entry.getValue()[0];
+      if (!key.equals(PAGE)) {
+        fields.add(new BasicNameValuePair(key, value));
+      }
+    }
+    if (fields.isEmpty()) {
+      return null;
+    } else {
+      return URLEncodedUtils.format(fields, "utf-8");
+    }
+  }
+
+  public static Map<String, String> getSearchParams() {
+    Map<String, String> searchParams = new HashMap<String, String>();
+
+    DynamicForm form = Form.form().bindFromRequest(request());
+    String username = form.get(USERNAME);
+    username = username != null ? username.trim().toLowerCase() : null;
+    searchParams.put(USERNAME, username);
+    String queuename = form.get(QUEUE_NAME);
+    queuename = queuename != null ? queuename.trim().toLowerCase() : null;
+    searchParams.put(QUEUE_NAME, queuename);
+    searchParams.put(SEVERITY, form.get(SEVERITY));
+    searchParams.put(JOB_TYPE, form.get(JOB_TYPE));
+    searchParams.put(ANALYSIS, form.get(ANALYSIS));
+    searchParams.put(FINISHED_TIME_BEGIN, form.get(FINISHED_TIME_BEGIN));
+    searchParams.put(FINISHED_TIME_END, form.get(FINISHED_TIME_END));
+    searchParams.put(STARTED_TIME_BEGIN, form.get(STARTED_TIME_BEGIN));
+    searchParams.put(STARTED_TIME_END, form.get(STARTED_TIME_END));
+
+    return searchParams;
+  }
+
+  /**
+   * Build SQL predicates for Search Query
+   *
+   * @param selectParams The fields to select from the table
+   * @param searchParams The fields to query on the table
+   * @return An sql expression on App Result
+   *
+  public static Query<AppResult> generateSearchQuery(String selectParams, Map<String, String> searchParams) {
+    if (searchParams == null || searchParams.isEmpty()) {
+      return AppResult.find.select(selectParams).order().desc(AppResult.TABLE.FINISH_TIME);
+    }
+    ExpressionList<AppResult> query = AppResult.find.select(selectParams).where();
+
+    // Build predicates
+    String username = searchParams.get(USERNAME);
+    if (Utils.isSet(username)) {
+      query = query.eq(AppResult.TABLE.USERNAME, username);
+    }
+
+    String queuename = searchParams.get(QUEUE_NAME);
+    if (Utils.isSet(queuename)) {
+      query = query.eq(AppResult.TABLE.QUEUE_NAME, queuename);
+    }
+    String jobType = searchParams.get(JOB_TYPE);
+    if (Utils.isSet(jobType)) {
+      query = query.eq(AppResult.TABLE.JOB_TYPE, jobType);
+    }
+    String severity = searchParams.get(SEVERITY);
+    if (Utils.isSet(severity)) {
+      String analysis = searchParams.get(ANALYSIS);
+      if (Utils.isSet(analysis)) {
+        query =
+            query.eq(AppResult.TABLE.APP_HEURISTIC_RESULTS + "." + AppHeuristicResult.TABLE.HEURISTIC_NAME, analysis)
+                .ge(AppResult.TABLE.APP_HEURISTIC_RESULTS + "." + AppHeuristicResult.TABLE.SEVERITY, severity);
+      } else {
+        query = query.ge(AppResult.TABLE.SEVERITY, severity);
+      }
+    }
+
+    // Time Predicates. Both the startedTimeBegin and startedTimeEnd are inclusive in the filter
+    String startedTimeBegin = searchParams.get(STARTED_TIME_BEGIN);
+    if (Utils.isSet(startedTimeBegin)) {
+      long time = parseTime(startedTimeBegin);
+      if (time > 0) {
+        query = query.ge(AppResult.TABLE.START_TIME, time);
+      }
+    }
+    String startedTimeEnd = searchParams.get(STARTED_TIME_END);
+    if (Utils.isSet(startedTimeEnd)) {
+      long time = parseTime(startedTimeEnd);
+      if (time > 0) {
+        query = query.le(AppResult.TABLE.START_TIME, time);
+      }
+    }
+
+    String finishedTimeBegin = searchParams.get(FINISHED_TIME_BEGIN);
+    if (Utils.isSet(finishedTimeBegin)) {
+      long time = parseTime(finishedTimeBegin);
+      if (time > 0) {
+        query = query.ge(AppResult.TABLE.FINISH_TIME, time);
+      }
+    }
+    String finishedTimeEnd = searchParams.get(FINISHED_TIME_END);
+    if (Utils.isSet(finishedTimeEnd)) {
+      long time = parseTime(finishedTimeEnd);
+      if (time > 0) {
+        query = query.le(AppResult.TABLE.FINISH_TIME, time);
+      }
+    }
+>>>>>>> c182c9828c0b8d9d71b1285bf87084fdb094cefc
+*/
 
     // If queried by start time then sort the results by start time.
     if (Utils.isSet(startedTimeBegin) || Utils.isSet(startedTimeEnd)) {
@@ -561,7 +729,7 @@ public class Application extends Controller {
    * @return A map of Job Urls to the list of jobs corresponding to the 2 flow execution urls
    */
   private static Map<IdUrlPair, Map<IdUrlPair, List<AppResult>>> compareFlows(List<AppResult> results1, List<AppResult> results2) {
-    
+
     Map<IdUrlPair, Map<IdUrlPair, List<AppResult>>> jobDefMap = new HashMap<IdUrlPair, Map<IdUrlPair, List<AppResult>>>();
 
     if (results1 != null && !results1.isEmpty() && results2 != null && !results2.isEmpty()) {
@@ -748,6 +916,83 @@ public class Application extends Controller {
           return ok(oldFlowHistoryPage.render(flowDefPair.getId(), graphType, oldFlowMetricsHistoryResults
                   .render(flowDefPair, graphType, executionMap, idPairToJobNameMap, flowExecTimeList)));
         }
+
+      }
+    }
+    return notFound("Unable to find graph type: " + graphType);
+  }
+
+  /**
+   * Controls Job History. Displays at max MAX_HISTORY_LIMIT executions. Old version of the job history
+   */
+  public static Result oldJobHistory() {
+    return getJobHistory(Version.OLD);
+  }
+
+    Map<IdUrlPair, List<AppResult>> flowExecIdToJobsMap = ControllerUtil
+        .limitHistoryResults(ControllerUtil.groupJobs(results, ControllerUtil.GroupBy.FLOW_EXECUTION_ID),
+            results.size(), MAX_HISTORY_LIMIT);
+
+    // Compute flow execution data
+    List<AppResult> filteredResults = new ArrayList<AppResult>();     // All jobs starting from latest execution
+    List<Long> flowExecTimeList = new ArrayList<Long>();         // To map executions to resp execution time
+    Map<IdUrlPair, Map<IdUrlPair, List<AppResult>>> executionMap =
+        new LinkedHashMap<IdUrlPair, Map<IdUrlPair, List<AppResult>>>();
+    for (Map.Entry<IdUrlPair, List<AppResult>> entry : flowExecIdToJobsMap.entrySet()) {
+
+      // Reverse the list content from desc order of finish time to increasing order so that when grouping we get
+      // the job list in the order of completion.
+      List<AppResult> mrJobsList = Lists.reverse(entry.getValue());
+
+      // Flow exec time is the finish time of the last mr job in the flow
+      flowExecTimeList.add(mrJobsList.get(mrJobsList.size() - 1).finishTime);
+
+      filteredResults.addAll(mrJobsList);
+      executionMap.put(entry.getKey(), ControllerUtil.groupJobs(mrJobsList, ControllerUtil.GroupBy.JOB_DEFINITION_ID));
+    }
+
+    // Calculate unique list of jobs (job def url) to maintain order across executions. List will contain job def urls
+    // from latest execution first followed by any other extra job def url that may appear in previous executions.
+    final Map<IdUrlPair, String> idPairToJobNameMap = new ListOrderedMap() ;
+
+    Map<IdUrlPair, List<AppResult>> filteredTempMap =
+        ControllerUtil.groupJobs(filteredResults, ControllerUtil.GroupBy.JOB_DEFINITION_ID);
+
+    List<Map.Entry<IdUrlPair, List<AppResult>>> filteredMapList =
+        new LinkedList<Map.Entry<IdUrlPair, List<AppResult>>>( filteredTempMap.entrySet() );
+
+    Collections.sort(filteredMapList, new Comparator<Map.Entry<IdUrlPair, List<AppResult>>>() {
+      @Override
+      public int compare(Map.Entry<IdUrlPair, List<AppResult>> idUrlPairListMap, Map.Entry<IdUrlPair, List<AppResult>> t1) {
+        return ( new Long(idUrlPairListMap.getValue().get(0).finishTime)).compareTo(t1.getValue().get(0).finishTime);
+      }
+    });
+
+
+    for (Map.Entry<IdUrlPair, List<AppResult>> entry : filteredMapList) {
+      idPairToJobNameMap.put(entry.getKey(), entry.getValue().get(0).jobName);
+    }
+
+    if (version.equals(Version.NEW)) {
+      if (graphType.equals("heuristics")) {
+        return ok(flowHistoryPage.render(flowDefPair.getId(), graphType,
+            flowHistoryResults.render(flowDefPair, executionMap, idPairToJobNameMap, flowExecTimeList)));
+      } else if (graphType.equals("resources") || graphType.equals("time")) {
+          return ok(flowHistoryPage.render(flowDefPair.getId(), graphType, flowMetricsHistoryResults
+              .render(flowDefPair, graphType, executionMap, idPairToJobNameMap, flowExecTimeList)));
+      }
+    } else {
+      if (graphType.equals("heuristics")) {
+        return ok(oldFlowHistoryPage.render(flowDefPair.getId(), graphType,
+            oldFlowHistoryResults.render(flowDefPair, executionMap, idPairToJobNameMap, flowExecTimeList)));
+      } else if (graphType.equals("resources") || graphType.equals("time")) {
+        if (hasSparkJob) {
+          return notFound("Cannot plot graph for " + graphType + " since it contains a spark job. " + graphType
+              + " graphs are not supported for spark right now");
+        } else {
+          return ok(oldFlowHistoryPage.render(flowDefPair.getId(), graphType, oldFlowMetricsHistoryResults
+                  .render(flowDefPair, graphType, executionMap, idPairToJobNameMap, flowExecTimeList)));
+        }
       }
     }
     return notFound("Unable to find graph type: " + graphType);
@@ -852,6 +1097,7 @@ public class Application extends Controller {
       // the job list in the order of completion.
       List<AppResult> mrJobsList = Lists.reverse(entry.getValue());
 
+
       // Get the finish time of the last mr job that completed in current flow.
       flowExecTimeList.add(mrJobsList.get(mrJobsList.size() - 1).finishTime);
 
@@ -864,6 +1110,19 @@ public class Application extends Controller {
       executionMap.put(entry.getKey(), Lists.reverse(flowExecIdToJobsMap.get(entry.getKey())));
       
       
+
+/*
+      // Get the finish time of the last mr job that completed in current flow.
+      flowExecTimeList.add(mrJobsList.get(mrJobsList.size() - 1).finishTime);
+
+      // Find the maximum number of mr stages for any job execution
+      int stageSize = flowExecIdToJobsMap.get(entry.getKey()).size();
+      if (stageSize > maxStages) {
+        maxStages = stageSize;
+      }
+
+      executionMap.put(entry.getKey(), Lists.reverse(flowExecIdToJobsMap.get(entry.getKey())));
+*/
     }
     if (maxStages > STAGE_LIMIT) {
       maxStages = STAGE_LIMIT;
@@ -879,7 +1138,9 @@ public class Application extends Controller {
     } else {
       if (graphType.equals("heuristics")) {
         return ok(oldJobHistoryPage.render(jobDefPair.getId(), graphType,
+
             oldJobHistoryResults.render(jobDefPair, executionMap, maxStages, flowExecTimeList), jobDefList));
+
       } else if (graphType.equals("resources") || graphType.equals("time")) {
         if (hasSparkJob) {
           return notFound("Resource and time graph are not supported for spark right now");
@@ -894,10 +1155,9 @@ public class Application extends Controller {
       
         return ok(oldJobHistoryPage.render(jobDefPair.getId(), graphType,
               oldJobMetricsHistoryResults.render(jobDefPair, graphType, executionMap, maxStages, flowExecTimeList), jobDefList));
-
-
       }
       // graphe saga counters
+
     }
     return notFound("Unable to find graph type: " + graphType);
   }
@@ -925,6 +1185,7 @@ public class Application extends Controller {
       if (page != null) {
         title = topic;
       }
+
     }
 
     if (version.equals(Version.NEW)) {
@@ -932,6 +1193,7 @@ public class Application extends Controller {
     }
     return ok(oldHelpPage.render(title, page));
   }
+
 
   /**
    * Controls the new Help Page
@@ -947,7 +1209,6 @@ public class Application extends Controller {
     return getHelp(Version.NEW);
   }
 
-
   private static Map<String, Html> getMetricsNameView() {
     Map<String,Html> metricsViewMap = new HashMap<String, Html>();
     metricsViewMap.put(Metrics.RUNTIME.getText(), helpRuntime.render());
@@ -955,6 +1216,7 @@ public class Application extends Controller {
     metricsViewMap.put(Metrics.USED_RESOURCES.getText(), helpUsedResources.render());
     metricsViewMap.put(Metrics.WASTED_RESOURCES.getText(), helpWastedResources.render());
     metricsViewMap.put(Metrics.SAGA_COUNTERS.getText(), helpSagaCounters.render());
+
     return metricsViewMap;
   }
   /**
@@ -1170,6 +1432,526 @@ public class Application extends Controller {
         resultMap.put(flowExecPair.getId(), results);
         resMap.put(jobExecPair.getId(), resultMap);
       }
+    }
+
+    return ok(Json.toJson(resMap));
+  }
+
+  /**
+   * The data for plotting the flow history graph
+   *
+   * <pre>
+   * {@code
+   *   [
+   *     {
+   *       "flowtime": <Last job's finish time>,
+   *       "score": 1000,
+   *       "jobscores": [
+   *         {
+   *           "jobdefurl:" "url",
+   *           "jobexecurl:" "url",
+   *           "jobscore": 500
+   *         },
+   *         {
+   *           "jobdefurl:" "url",
+   *           "jobexecurl:" "url",
+   *           "jobscore": 500
+   *         }
+   *       ]
+   *     },
+   *     {
+   *       "flowtime": <Last job's finish time>,
+   *       "score": 700,
+   *       "jobscores": [
+   *         {
+   *           "jobdefurl:" "url",
+   *           "jobexecurl:" "url",
+   *           "jobscore": 0
+   *         },
+   *         {
+   *           "jobdefurl:" "url",
+   *           "jobexecurl:" "url",
+   *           "jobscore": 700
+   *         }
+   *       ]
+   *     }
+   *   ]
+   * }
+   * </pre>
+   */
+  public static Result restFlowGraphData(String flowDefId) {
+    JsonArray datasets = new JsonArray();
+    if (flowDefId == null || flowDefId.isEmpty()) {
+      return ok(new Gson().toJson(datasets));
+    }
+
+    // Fetch available flow executions with latest JOB_HISTORY_LIMIT mr jobs.
+    List<AppResult> results = getRestFlowAppResults(flowDefId);
+
+    if (results.size() == 0) {
+      logger.info("No results for Job url");
+    }
+    Map<IdUrlPair, List<AppResult>> flowExecIdToJobsMap =
+        ControllerUtil.limitHistoryResults(ControllerUtil.groupJobs(results, ControllerUtil.GroupBy.FLOW_EXECUTION_ID), results.size(), MAX_HISTORY_LIMIT);
+
+    // Compute the graph data starting from the earliest available execution to latest
+    List<IdUrlPair> keyList = new ArrayList<IdUrlPair>(flowExecIdToJobsMap.keySet());
+    for (int i = keyList.size() - 1; i >= 0; i--) {
+      IdUrlPair flowExecPair = keyList.get(i);
+      int flowPerfScore = 0;
+      JsonArray jobScores = new JsonArray();
+      List<AppResult> mrJobsList = Lists.reverse(flowExecIdToJobsMap.get(flowExecPair));
+      Map<IdUrlPair, List<AppResult>> jobDefIdToJobsMap = ControllerUtil.groupJobs(mrJobsList, ControllerUtil.GroupBy.JOB_DEFINITION_ID);
+
+      // Compute the execution records. Note that each entry in the jobDefIdToJobsMap will have at least one AppResult
+      for (IdUrlPair jobDefPair : jobDefIdToJobsMap.keySet()) {
+        // Compute job perf score
+        int jobPerfScore = 0;
+        for (AppResult job : jobDefIdToJobsMap.get(jobDefPair)) {
+          jobPerfScore += job.score;
+        }
+
+        // A job in jobscores list
+        JsonObject jobScore = new JsonObject();
+        jobScore.addProperty("jobscore", jobPerfScore);
+        jobScore.addProperty("jobdefurl", jobDefPair.getUrl());
+        jobScore.addProperty("jobexecurl", jobDefIdToJobsMap.get(jobDefPair).get(0).jobExecUrl);
+
+        jobScores.add(jobScore);
+        flowPerfScore += jobPerfScore;
+      }
+
+      // Execution record
+      JsonObject dataset = new JsonObject();
+      dataset.addProperty("flowtime", Utils.getFlowTime(mrJobsList.get(mrJobsList.size() - 1)));
+      dataset.addProperty("score", flowPerfScore);
+      dataset.add("jobscores", jobScores);
+
+      datasets.add(dataset);
+    }
+
+    JsonArray sortedDatasets = Utils.sortJsonArray(datasets);
+
+    return ok(new Gson().toJson(sortedDatasets));
+  }
+
+
+
+  /**
+   * The data for plotting the job history graph. While plotting the job history
+   * graph an ajax call is made to this to fetch the graph data.
+   *
+   * Data Returned:
+   * <pre>
+   * {@code
+   *   [
+   *     {
+   *       "flowtime": <Last job's finish time>,
+   *       "score": 1000,
+   *       "stagescores": [
+   *         {
+   *           "stageid:" "id",
+   *           "stagescore": 500
+   *         },
+   *         {
+   *           "stageid:" "id",
+   *           "stagescore": 500
+   *         }
+   *       ]
+   *     },
+   *     {
+   *       "flowtime": <Last job's finish time>,
+   *       "score": 700,
+   *       "stagescores": [
+   *         {
+   *           "stageid:" "id",
+   *           "stagescore": 0
+   *         },
+   *         {
+   *           "stageid:" "id",
+   *           "stagescore": 700
+   *         }
+   *       ]
+   *     }
+   *   ]
+   * }
+   * </pre>
+   */
+  public static Result restJobGraphData(String jobDefId) {
+    JsonArray datasets = new JsonArray();
+    if (jobDefId == null || jobDefId.isEmpty()) {
+      return ok(new Gson().toJson(datasets));
+    }
+
+    // Fetch available flow executions with latest JOB_HISTORY_LIMIT mr jobs.
+    List<AppResult> results = getRestJobAppResults(jobDefId);
+
+    if (results.size() == 0) {
+      logger.info("No results for Job url");
+    }
+    Map<IdUrlPair, List<AppResult>> flowExecIdToJobsMap =
+        ControllerUtil.limitHistoryResults(ControllerUtil.groupJobs(results, ControllerUtil.GroupBy.FLOW_EXECUTION_ID), results.size(), MAX_HISTORY_LIMIT);
+
+    // Compute the graph data starting from the earliest available execution to latest
+    List<IdUrlPair> keyList = new ArrayList<IdUrlPair>(flowExecIdToJobsMap.keySet());
+    for (int i = keyList.size() - 1; i >= 0; i--) {
+      IdUrlPair flowExecPair = keyList.get(i);
+      int jobPerfScore = 0;
+      JsonArray stageScores = new JsonArray();
+      List<AppResult> mrJobsList = Lists.reverse(flowExecIdToJobsMap.get(flowExecPair));
+      for (AppResult appResult : flowExecIdToJobsMap.get(flowExecPair)) {
+
+        // Each MR job triggered by jobDefId for flowExecId
+        int mrPerfScore = 0;
+        for (AppHeuristicResult appHeuristicResult : appResult.yarnAppHeuristicResults) {
+          mrPerfScore += appHeuristicResult.score;
+        }
+
+        // A particular mr stage
+        JsonObject stageScore = new JsonObject();
+        stageScore.addProperty("stageid", appResult.id);
+        stageScore.addProperty("stagescore", mrPerfScore);
+
+        stageScores.add(stageScore);
+        jobPerfScore += mrPerfScore;
+      }
+
+      // Execution record
+      JsonObject dataset = new JsonObject();
+      dataset.addProperty("flowtime", Utils.getFlowTime(mrJobsList.get(mrJobsList.size() - 1)));
+      dataset.addProperty("score", jobPerfScore);
+      dataset.add("stagescores", stageScores);
+
+      datasets.add(dataset);
+    }
+
+    JsonArray sortedDatasets = Utils.sortJsonArray(datasets);
+
+    return ok(new Gson().toJson(sortedDatasets));
+  }
+
+  /**
+   * The data for plotting the job history graph using time and resource metrics. While plotting the job history
+   * graph an ajax call is made to this to fetch the graph data.
+   *
+   * Data Returned:
+   * <pre>
+   * [
+   *  {
+   *    "flowtime": 1461234105456,
+   *    "runtime": 2312107,
+   *    "waittime": 118879,
+   *    "resourceused": 304934912,
+   *    "resourcewasted": 172913,
+   *    "jobmetrics": [
+   *      {
+   *        "stageid": "application_1458194917883_1587177",
+   *        "runtime": 642986,
+   *        "waittime": 14016,
+   *        "resourceused": 277352448,
+   *        "resourcewasted": 0
+   *    }],
+   *  },
+   *  {
+   *    "flowtime": 1461237538639,
+   *    "runtime": 2155354,
+   *    "waittime": 112187,
+   *    "resourceused": 293096448,
+   *    "resourcewasted": 400461,
+   *    "jobmetrics": [
+   *      {
+   *        "stageid": "application_1458194917883_1589302",
+   *        "runtime": 548924,
+   *        "waittime": 16903,
+   *        "resourceused": 266217472,
+   *        "resourcewasted": 0
+   *      }]
+   *  }
+   *  ]
+   *
+   * </pre>
+   */
+  public static Result restJobMetricsGraphData(String jobDefId) {
+    JsonArray datasets = new JsonArray();
+    if (jobDefId == null || jobDefId.isEmpty()) {
+      return ok(new Gson().toJson(datasets));
+    }
+
+    List<AppResult> results = getRestJobAppResults(jobDefId);
+
+    if (results.size() == 0) {
+      logger.info("No results for Job url");
+    }
+    Map<IdUrlPair, List<AppResult>> flowExecIdToJobsMap =
+        ControllerUtil.limitHistoryResults(ControllerUtil.groupJobs(results, ControllerUtil.GroupBy.FLOW_EXECUTION_ID), results.size(), MAX_HISTORY_LIMIT);
+
+    // Compute the graph data starting from the earliest available execution to latest
+    List<IdUrlPair> keyList = new ArrayList<IdUrlPair>(flowExecIdToJobsMap.keySet());
+    for (int i = keyList.size() - 1; i >= 0; i--) {
+      IdUrlPair flowExecPair = keyList.get(i);
+      int jobPerfScore = 0;
+      JsonArray stageMetrics = new JsonArray();
+      List<AppResult> mrJobsList = Lists.reverse(flowExecIdToJobsMap.get(flowExecPair));
+
+      long totalMemoryUsed = 0;
+      long totalMemoryWasted = 0;
+      long totalDelay = 0;
+
+      for (AppResult appResult : flowExecIdToJobsMap.get(flowExecPair)) {
+
+        // Each MR job triggered by jobDefId for flowExecId
+        int mrPerfScore = 0;
+
+        for (AppHeuristicResult appHeuristicResult : appResult.yarnAppHeuristicResults) {
+          mrPerfScore += appHeuristicResult.score;
+        }
+
+        // A particular mr stage
+        JsonObject stageMetric = new JsonObject();
+        stageMetric.addProperty("stageid", appResult.id);
+        stageMetric.addProperty("runtime", appResult.finishTime - appResult.startTime);
+        stageMetric.addProperty("waittime", appResult.totalDelay);
+        stageMetric.addProperty("resourceused", appResult.resourceUsed);
+        stageMetric.addProperty("resourcewasted", appResult.resourceWasted);
+
+        stageMetrics.add(stageMetric);
+        jobPerfScore += mrPerfScore;
+        totalMemoryUsed += appResult.resourceUsed;
+        totalMemoryWasted += appResult.resourceWasted;
+      }
+
+      // Execution record
+      JsonObject dataset = new JsonObject();
+      dataset.addProperty("flowtime", Utils.getFlowTime(mrJobsList.get(mrJobsList.size() - 1)));
+      dataset.addProperty("runtime", Utils.getTotalRuntime(mrJobsList));
+      dataset.addProperty("waittime", Utils.getTotalWaittime(mrJobsList));
+      dataset.addProperty("resourceused", totalMemoryUsed);
+      dataset.addProperty("resourcewasted", totalMemoryWasted);
+      dataset.add("jobmetrics", stageMetrics);
+
+      datasets.add(dataset);
+    }
+
+    JsonArray sortedDatasets = Utils.sortJsonArray(datasets);
+
+    return ok(new Gson().toJson(sortedDatasets));
+  }
+
+  /**
+   *
+   * @param startTime - beginning of the time window
+   * @param endTime - end of the time window
+   * @return Json of resourceUsage data for each user for the given time window
+   *    eg. [{"user":"bmr","resourceUsed":168030208,"resourceWasted":27262750},
+   *        {"user":"payments","resourceUsed":18432,"resourceWasted":3447},
+   *        {"user":"myu","resourceUsed":558211072,"resourceWasted":81573818}]
+   */
+  public static Result restResourceUsageDataByUser(String startTime, String endTime) {
+    try {
+      JsonArray datasets = new JsonArray();
+      if(startTime.length() != endTime.length() ||
+          (startTime.length() != 10 && startTime.length() != 13)) {
+        return status(300);
+      }
+      SimpleDateFormat tf = null ;
+      if( startTime.length() == 10 ) {
+         tf = new SimpleDateFormat("yyyy-MM-dd");
+      }
+      else {
+        tf = new SimpleDateFormat("yyyy-MM-dd-HH");
+      }
+      Date start = tf.parse(startTime);
+      Date end = tf.parse(endTime);
+      Collection<AppResourceUsageData> result = getUserResourceUsage(start, end);
+
+      return ok(new Gson().toJson(result));
+    }
+    catch(ParseException ex) {
+      return status(300,"Invalid datetime format : " + ex.getMessage());
+    }
+  }
+
+
+  /**
+   * Rest data to plot flot history graph using time and resource metrics. While plotting the flow history
+   * graph an ajax call is made to this to fetch the graph data.
+   * [
+   * {
+   *  "flowtime": 1461744881991,
+   *  "runtime": 3190223,
+   *  "waittime": 368011,
+   *  "resourceused": 180488192,
+   *  "resourcewasted": 0,
+   *  "jobmetrics": [
+   *          {
+   *         "runtime": 3190223,
+   *         "waittime": 368011,
+   *         "resourceused": 180488192,
+   *         "resourcewasted": 0,
+   *         "jobdefurl": "sampleURL"
+   *         "jobexecurl": "sampleURL"
+   *          }
+   *        ]
+   * },
+   * {
+   *  "flowtime": 1461818409959,
+   *  "runtime": 897490,
+   *  "waittime": 100703,
+   *  "resourceused": 12863488,
+   *  "resourcewasted": 0,
+   *  "jobmetrics": [
+   *          {
+   *         "runtime": 897490,
+   *         "waittime": 100703,
+   *         "resourceused": 12863488,
+   *         "resourcewasted": 0,
+   *         "jobdefurl": "sampleURL"
+   *         "jobexecurl": "sampleURL"
+   * }
+   * ]
+   *}
+   *]
+   **/
+  public static Result restFlowMetricsGraphData(String flowDefId) {
+    JsonArray datasets = new JsonArray();
+    if (flowDefId == null || flowDefId.isEmpty()) {
+      return ok(new Gson().toJson(datasets));
+    }
+
+    List<AppResult> results = getRestFlowAppResults(flowDefId);
+
+    if (results.size() == 0) {
+      logger.info("No results for Job url");
+    }
+    Map<IdUrlPair, List<AppResult>> flowExecIdToJobsMap =
+        ControllerUtil.limitHistoryResults(ControllerUtil.groupJobs(results, ControllerUtil.GroupBy.FLOW_EXECUTION_ID), results.size(), MAX_HISTORY_LIMIT);
+
+    // Compute the graph data starting from the earliest available execution to latest
+    List<IdUrlPair> keyList = new ArrayList<IdUrlPair>(flowExecIdToJobsMap.keySet());
+    for (int i = keyList.size() - 1; i >= 0; i--) {
+      IdUrlPair flowExecPair = keyList.get(i);
+      int flowPerfScore = 0;
+      JsonArray jobScores = new JsonArray();
+      List<AppResult> mrJobsList = Lists.reverse(flowExecIdToJobsMap.get(flowExecPair));
+      Map<IdUrlPair, List<AppResult>> jobDefIdToJobsMap = ControllerUtil.groupJobs(mrJobsList, ControllerUtil.GroupBy.JOB_DEFINITION_ID);
+
+      long totalFlowMemoryUsed = 0;
+      long totalFlowMemoryWasted = 0;
+      long totalFlowDelay = 0;
+      long totalFlowRuntime = 0;
+      // Compute the execution records. Note that each entry in the jobDefIdToJobsMap will have at least one AppResult
+      for (IdUrlPair jobDefPair : jobDefIdToJobsMap.keySet()) {
+        // Compute job perf score
+        long totalJobMemoryUsed = 0;
+        long totalJobMemoryWasted = 0;
+        long totalJobDelay = 0;
+        long totalJobRuntime = 0;
+
+        totalJobRuntime = Utils.getTotalRuntime(jobDefIdToJobsMap.get(jobDefPair));
+        totalJobDelay = Utils.getTotalWaittime(jobDefIdToJobsMap.get(jobDefPair));
+
+        for (AppResult job : jobDefIdToJobsMap.get(jobDefPair)) {
+          totalJobMemoryUsed += job.resourceUsed;
+          totalJobMemoryWasted += job.resourceWasted;
+        }
+
+        // A job in jobscores list
+        JsonObject jobScore = new JsonObject();
+        jobScore.addProperty("runtime", totalJobRuntime);
+        jobScore.addProperty("waittime", totalJobDelay);
+        jobScore.addProperty("resourceused", totalJobMemoryUsed);
+        jobScore.addProperty("resourcewasted", totalJobMemoryWasted);
+        jobScore.addProperty("jobdefurl", jobDefPair.getUrl());
+        jobScore.addProperty("jobexecurl", jobDefIdToJobsMap.get(jobDefPair).get(0).jobExecUrl);
+
+        jobScores.add(jobScore);
+        totalFlowMemoryUsed += totalJobMemoryUsed;
+        totalFlowMemoryWasted += totalJobMemoryWasted;
+      }
+
+      totalFlowDelay = Utils.getTotalWaittime(flowExecIdToJobsMap.get(flowExecPair));
+      totalFlowRuntime = Utils.getTotalRuntime(flowExecIdToJobsMap.get(flowExecPair));
+
+      // Execution record
+      JsonObject dataset = new JsonObject();
+      dataset.addProperty("flowtime", Utils.getFlowTime(mrJobsList.get(mrJobsList.size() - 1)));
+      dataset.addProperty("runtime", totalFlowRuntime);
+      dataset.addProperty("waittime", totalFlowDelay);
+      dataset.addProperty("resourceused", totalFlowMemoryUsed);
+      dataset.addProperty("resourcewasted", totalFlowMemoryWasted);
+      dataset.add("jobmetrics", jobScores);
+
+      datasets.add(dataset);
+    }
+
+    JsonArray sortedDatasets = Utils.sortJsonArray(datasets);
+
+    return ok(new Gson().toJson(sortedDatasets));
+  }
+
+  /**
+   * Returns a list of AppResults after quering the FLOW_EXEC_ID from the database
+   * @return The list of AppResults
+   */
+  private static List<AppResult> getRestJobAppResults(String jobDefId) {
+    List<AppResult> results = AppResult.find.select(
+        AppResult.getSearchFields() + "," + AppResult.TABLE.FLOW_EXEC_ID + "," + AppResult.TABLE.FLOW_EXEC_URL)
+        .where()
+        .eq(AppResult.TABLE.JOB_DEF_ID, jobDefId)
+        .order()
+        .desc(AppResult.TABLE.FINISH_TIME)
+        .setMaxRows(JOB_HISTORY_LIMIT)
+        .fetch(AppResult.TABLE.APP_HEURISTIC_RESULTS, "*")
+        .findList();
+
+    return results;
+  }
+
+  /**
+   * Returns the list of AppResults after quering the FLOW_DEF_ID from the database
+   * @return The list of AppResults
+   */
+  private static List<AppResult> getRestFlowAppResults(String flowDefId) {
+    // Fetch available flow executions with latest JOB_HISTORY_LIMIT mr jobs.
+    List<AppResult> results = AppResult.find.select("*")
+        .where()
+        .eq(AppResult.TABLE.FLOW_DEF_ID, flowDefId)
+        .order()
+        .desc(AppResult.TABLE.FINISH_TIME)
+        .setMaxRows(JOB_HISTORY_LIMIT)
+        .findList();
+
+    return results;
+  }
+
+  private static class AppResourceUsageData {
+    String user;
+    double resourceUsed;
+    double resourceWasted;
+  }
+
+  /**
+   * Returns the list of users with their resourceUsed and resourceWasted Data for the given time range
+   * @return list of AppResourceUsageData
+   **/
+  private static Collection<AppResourceUsageData> getUserResourceUsage(Date start, Date end) {
+    long resourceUsed = 0;
+    Map<String, AppResourceUsageData> userResourceUsage = new HashMap<String, AppResourceUsageData>();
+    // Fetch all the appresults for the given time range [startTime, endTime).
+    List<AppResult> results = AppResult.find.select("*")
+        .where()
+        .ge(AppResult.TABLE.START_TIME, start.getTime())
+        .lt(AppResult.TABLE.START_TIME, end.getTime()).findList();
+
+    // aggregate the resourceUsage data at the user level
+    for (AppResult result : results) {
+      if (!userResourceUsage.containsKey(result.username)) {
+        AppResourceUsageData data = new AppResourceUsageData();
+        data.user = result.username;
+        userResourceUsage.put(result.username, data);
+      }
+      userResourceUsage.get(result.username).resourceUsed += Utils.MBSecondsToGBHours(result.resourceUsed);
+      userResourceUsage.get(result.username).resourceWasted += Utils.MBSecondsToGBHours(result.resourceWasted);
     }
 
     return ok(Json.toJson(resMap));

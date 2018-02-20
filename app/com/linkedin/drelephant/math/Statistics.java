@@ -219,7 +219,7 @@ public final class Statistics {
     return "(" + String.format("%.2f", factor) + suffix + ")";
   }
 
-  /**
+/**
    * Convert milliseconds to readable value
    *
    * @param milliseconds The number of milliseconds
@@ -291,7 +291,7 @@ public final class Statistics {
     }
   }
   
-  public static long standardDeviation(long mean, List<Long> values) {
+      public static long standardDeviation(long mean, List<Long> values) {
     //Find standard deviation
     double sum = 0d;
     for (long value : values) {
@@ -300,5 +300,32 @@ public final class Statistics {
     sum = sum / (double) values.size();
     return (long) (Math.sqrt(sum));
   }
-
+  
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+  
+
+  
+
+

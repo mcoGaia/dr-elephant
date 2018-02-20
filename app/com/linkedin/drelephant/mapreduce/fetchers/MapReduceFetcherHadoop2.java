@@ -56,32 +56,31 @@ public class MapReduceFetcherHadoop2 extends MapReduceFetcher {
   private URLFactory _urlFactory;
   private JSONFactory _jsonFactory;
   private String _jhistoryWebAddr;
-  
- /* public static String cpt; */
 
   public MapReduceFetcherHadoop2(FetcherConfigurationData fetcherConfData) throws IOException {
     super(fetcherConfData);
 
     final String jhistoryAddr = new Configuration().get("mapreduce.jobhistory.webapp.address");
-    
+
     logger.info("Connecting to the job history server at " + jhistoryAddr + "...");
     _urlFactory = new URLFactory(jhistoryAddr);
     logger.info("Connection success.");
 
     _jsonFactory = new JSONFactory();
     _jhistoryWebAddr = "http://" + jhistoryAddr + "/jobhistory/job/";
-    
-        
+
   }
 
   @Override
   public MapReduceApplicationData fetchData(AnalyticJob analyticJob) throws IOException, AuthenticationException {
     String appId = analyticJob.getAppId();
     MapReduceApplicationData jobData = new MapReduceApplicationData();
+
     String jobId = Utils.getJobIdFromApplicationId(appId);  //jobId = job_1492769394186_0242
     jobData.setAppId(appId).setJobId(jobId);
     // Change job tracking url to job history page
     analyticJob.setTrackingUrl(_jhistoryWebAddr + jobId);  //l'adresse du job, reste plus qu'a cliquer sur 'counters'
+
     try {
 
       // Fetch job config
@@ -138,7 +137,7 @@ public class MapReduceFetcherHadoop2 extends MapReduceFetcher {
         }
         jobData.setDiagnosticInfo(diagnosticInfo);
       } else {
-        //jobData.setSucceeded(false);
+
         // Should not reach here
         throw new RuntimeException("Job state not supported. Should be either SUCCEEDED or FAILED");
       }
@@ -256,7 +255,6 @@ public class MapReduceFetcherHadoop2 extends MapReduceFetcher {
       return jobConf;
     }
 
-  //http://gaia0:19888/ws/v1/history/mapreduce/jobs/job_1492769394186_0459/counters
     private MapReduceCounterData getJobCounter(URL url) throws IOException, AuthenticationException {
       MapReduceCounterData holder = new MapReduceCounterData();
 
@@ -284,7 +282,6 @@ public class MapReduceFetcherHadoop2 extends MapReduceFetcher {
         
       return name;
     }
-
 
   // url = http://gaia0:19888/ws/v1/history/mapreduce/jobs/job_1492769394186_0459/tasks/task_1492769394186_0459_m_000000/counters
     private MapReduceCounterData getTaskCounter(URL url) throws IOException, AuthenticationException {

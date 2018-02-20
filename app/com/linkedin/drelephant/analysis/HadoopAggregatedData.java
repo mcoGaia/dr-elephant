@@ -48,6 +48,7 @@ public class HadoopAggregatedData {
   
   // in/out
 
+
   /**
    * Returns the resource usage (in MBSeconds) of the job
    * @return The resource usage (in MBSeconds) of the job

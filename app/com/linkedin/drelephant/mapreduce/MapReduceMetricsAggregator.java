@@ -26,7 +26,6 @@ import org.apache.log4j.Logger;
 
 import com.linkedin.drelephant.mapreduce.data.MapReduceCounterData;
 
-
 public class MapReduceMetricsAggregator implements HadoopMetricsAggregator {
 
   private static final Logger logger = Logger.getLogger(MapReduceMetricsAggregator.class);
@@ -78,12 +77,10 @@ public class MapReduceMetricsAggregator implements HadoopMetricsAggregator {
     _hadoopAggregatedData.setResourceWasted(mapTasks.getResourceWasted() + reduceTasks.getResourceWasted());
 
     // In/Out
-
     long in = data.getCounters().get(MapReduceCounterData.CounterName.JOB_INPUT_OBJECT);
     long out = data.getCounters().get(MapReduceCounterData.CounterName.JOB_OUTPUT_OBJECT);
     _hadoopAggregatedData.setInputCard(in);
     _hadoopAggregatedData.setOutputCard(out);
-
     // In/Out
 
   }

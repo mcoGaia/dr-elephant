@@ -53,6 +53,13 @@
     <conf>oozie.launcher.action.main.class</conf>
   </jobType>
   <jobType>
+
+    <name>Cascading</name>
+    <applicationtype>mapreduce</applicationtype>
+    <conf>cascading.app.frameworks</conf>
+  </jobType>
+  <jobType>
+  
     <name>Voldemort</name>
     <applicationtype>mapreduce</applicationtype>
     <conf>mapred.reducer.class</conf>
@@ -69,9 +76,11 @@
     <conf>mapred.child.java.opts</conf>
     <isDefault/>
   </jobType>
+<!--
   <jobType>
     <name>Cascading</name>
     <applicationtype>mapreduce</applicationtype>
     <conf>cascading.app.id</conf>
   </jobType>
+  -->
 </jobTypes>

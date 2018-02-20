@@ -32,10 +32,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-//import javax.persistence.EntityResult;
 
 @Entity
-//@EntityResult
 @Table(name = "yarn_app_result")
 public class AppResult extends Model {
 
@@ -85,6 +83,7 @@ public class AppResult extends Model {
     public static final String INPUT_CARD = "inputCard";
     public static final String OUTPUT_CARD = "outputCard";
    //in/out
+
   }
 
   public static String getSearchFields() {
@@ -164,21 +163,15 @@ public class AppResult extends Model {
 
   @Column(nullable = true)
   public long totalDelay;
-  
+
   //in/out
-  
-//  @Column(nullable = true)
-//@Column(name = "input_card", nullable = false, columnDefinition = "bigint(20) unsigned default NULL")
   @Column(nullable = true)
   public long inputCard;
   
-//  @Column(nullable = true)
-//@Column(name = "output_card", nullable = false, columnDefinition = "bigint(20) unsigned default NULL")
   @Column(nullable = true)
   public long outputCard;
-
-
   //in/out
+
 
   @JsonManagedReference
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "yarnAppResult")

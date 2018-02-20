@@ -75,7 +75,7 @@ public class StatisticsTest {
   @Test
   public void testDescribeFactor() {
     assertEquals("", Statistics.describeFactor(0, 0, "test"));
-    assertEquals("(5,00test)", Statistics.describeFactor(10, 2, "test"));
+    assertEquals("(5.00test)", Statistics.describeFactor(10, 2, "test"));
   }
 
   @Test

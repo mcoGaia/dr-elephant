@@ -79,6 +79,7 @@
 
                         <table class="table" style="height:100%; width:570px; display: table; border-collapse: collapse; margin:0px; padding:0px">
 
+
                           <tbody style="height:100%;">
                             <tr style="text-align: center;">
                               <td class="used-resource-td hasTooltip" style="width: 95px"><img src='@routes.Assets.at("images/usedmemory.png")' class="metrics-icons-table" alt='used resources'/>
@@ -115,8 +116,7 @@
                                   </div>
                                 </td>
                                 <!-- SAGA_counters -->
-                              
-                              
+
                             </tr>
                           </tbody>
                         </table>
@@ -156,6 +156,7 @@
                           </td>
                           <td class="wait-time-td hasTooltip" style="width: 95px">@(Utils.getDurationBreakdown(Utils.getTotalWaittime(jobMap.get(jobDefPair))).split("Hours")(0))
                           </td>
+
 
                             <!-- in/out -->
                             <td class="run-time-td hasTooltip" style="width: 95px">@(Utils.getTotalIn(jobMap.get(jobDefPair)))

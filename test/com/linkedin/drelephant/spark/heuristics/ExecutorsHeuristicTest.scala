@@ -92,19 +92,19 @@ class ExecutorsHeuristicTest extends FunSpec with Matchers {
       it("returns the total storage memory allocated") {
         val details = heuristicResultDetails.get(0)
         details.getName should include("storage memory allocated")
-        details.getValue should be("19,07 MB")
+        details.getValue should be("19.07 MB")
       }
 
       it("returns the total storage memory used") {
         val details = heuristicResultDetails.get(1)
         details.getName should include("storage memory used")
-        details.getValue should be("9,54 MB")
+        details.getValue should be("9.54 MB")
       }
 
       it("returns the storage memory utilization rate") {
         val details = heuristicResultDetails.get(2)
         details.getName should include("storage memory utilization rate")
-        details.getValue should be("0,500")
+        details.getValue should be("0.500")
       }
 
       it("returns the distribution of storage memory used among executors") {
@@ -249,6 +249,7 @@ object ExecutorsHeuristicTest {
     totalShuffleRead,
     totalShuffleWrite,
     maxMemory,
+    totalGCTime = 0,
     executorLogs = Map.empty
   )
 

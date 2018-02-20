@@ -28,9 +28,34 @@ function play_command() {
   fi
 }
 
+
 # Default configurations
-HADOOP_VERSION="2.6.4"
-SPARK_VERSION="2.2.0"
+#HADOOP_VERSION="2.6.4"
+#SPARK_VERSION="2.2.0"
+
+function require_programs() {
+  echo "Checking for required programs..."
+  missing_programs=""
+  
+  for program in $@; do
+    if ! command -v "$program" > /dev/null; then
+      missing_programs=$(printf "%s\n\t- %s" "$missing_programs" "$program")
+    fi
+  done 
+
+  if [ ! -z "$missing_programs" ]; then
+    echo "[ERROR] The following programs are required and are missing: $missing_programs"
+    exit 1
+  else
+    echo "[SUCCESS] Program requirement is fulfilled!"
+  fi
+}
+
+require_programs zip unzip
+
+# Default configurations
+HADOOP_VERSION="2.3.0"
+SPARK_VERSION="1.4.0"
 
 # User should pass an optional argument which is a path to config file
 if [ -z "$1" ];
