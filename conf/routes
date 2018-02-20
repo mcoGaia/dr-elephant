@@ -32,7 +32,6 @@ GET        /newflowhistory                      controllers.Application.flowHist
 GET        /newjobhistory                       controllers.Application.jobHistory()
 GET        /newhelp                             controllers.Application.help()
 
-
 ## filter
 
 GET        /filterPage                          controllers.Application.filter()
