@@ -289,8 +289,8 @@ public class AnalyticJob {
     result.finishTime = getFinishTime();
     result.name = Utils.truncateField(getName(), AppResult.APP_NAME_LIMIT, getAppId());
     result.jobType = Utils.truncateField(jobTypeName, AppResult.JOBTYPE_LIMIT, getAppId());
-
     result.totalDelay = hadoopAggregatedData.getTotalDelay();
+/*
     //(((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length > MAX_SAMPLE_SIZE) = nombre total de taches du job
     if ( ((MapReduceFetcher)fetcher).isSamplingEnabled() && (((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length > MAX_SAMPLE_SIZE))
       result.resourceUsed = hadoopAggregatedData.getResourceUsed()* (((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length) / MAX_SAMPLE_SIZE;
@@ -302,15 +302,15 @@ public class AnalyticJob {
       result.resourceWasted = hadoopAggregatedData.getResourceWasted()* (((MapReduceApplicationData)data).getMapperData().length +((MapReduceApplicationData)data).getReducerData().length) / MAX_SAMPLE_SIZE;
     else
       result.resourceWasted = hadoopAggregatedData.getResourceWasted();
-
+*/
     //in/out
     result.inputCard = hadoopAggregatedData.getInputCard();
     result.outputCard = hadoopAggregatedData.getOutputCard(); 
     //in/out
 
-//    result.resourceUsed = hadoopAggregatedData.getResourceUsed();
-//    result.totalDelay = hadoopAggregatedData.getTotalDelay();
-//    result.resourceWasted = hadoopAggregatedData.getResourceWasted();
+    result.resourceUsed = hadoopAggregatedData.getResourceUsed();
+    result.totalDelay = hadoopAggregatedData.getTotalDelay();
+    result.resourceWasted = hadoopAggregatedData.getResourceWasted();
 
 
     // Load App Heuristic information
