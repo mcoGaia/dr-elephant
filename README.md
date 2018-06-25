@@ -35,6 +35,35 @@ We have scheduled a weekly Dr. Elephant meeting for the interested developers an
 
 Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute%3F).
 
+## How to compile and launch on Gaia3
+
+1. Clone the project
+	* git clone https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git
+	
+2. Global variables
+	* HTTP_PROXY and HTTPS_PROXY
+	* Set LANG to en_US.UTF-8
+	* Add activator*/bin/ in PATH
+	
+3. Database
+	* Start the service mysql.
+	* Default account is drelephant with pwd = "Dr-elephant123"
+	* Create your account  or use default account.
+	* Create a database or use default database (default datadase is "drelephant")
+	
+4. Compile
+	* In compil.sh you can add or remove tests.
+		* Replcace "play_command $OPTS clean compile dist"by "play_command $OPTS clean compile test dist"
+	* Run ./compile.sh compile.conf
+	
+5. Start & Stop
+	* After compilation:
+		* cd dist/; unzip dr-elephant*.zip; cd dr-elephant*
+		* Edit the following parameters in file app-conf/elephant.conf : port, db_url, db_name, db_user and db_password;
+	* Launch dr.Elephant -> ./bin/start.sh app-conf/ and go to localhost: "port" to use web UI.
+	* To stop the application type ./bin/stop
+
+
 ## License
 
     Copyright 2016 LinkedIn Corp.
