@@ -35,10 +35,14 @@ We have scheduled a weekly Dr. Elephant meeting for the interested developers an
 
 Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute%3F).
 
-## How to compile and launch on Gaia3
+
+## How to compile and launch on Gaia3 from Thales gitlab
 
 1. Clone the project
 	* git clone https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git
+	* Update remote
+		* git remote rename origin GAIA-repo
+		* git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git
 	
 2. Global variables
 	* HTTP_PROXY and HTTPS_PROXY
@@ -62,6 +66,26 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 		* Edit the following parameters in file app-conf/elephant.conf : port, db_url, db_name, db_user and db_password;
 	* Launch dr.Elephant -> ./bin/start.sh app-conf/ and go to localhost: "port" to use web UI.
 	* To stop the application type ./bin/stop
+	
+## Get the latest modification from linkedIn github on master branch
+	
+1. Type the following command: git remote -v
+This should output something like:
+		GAIA-repo       https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git (fetch)
+		GAIA-repo       https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git (push)
+		linkedIn-repo   https://github.com/linkedin/dr-elephant.git (fetch)
+		linkedIn-repo   https://github.com/linkedin/dr-elephant.git (push)
+If not type:
+	* git remote rename origin GAIA-repo
+	* git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git
+	
+2. Pull the project from github
+	* git pull linkedIn-repo master
+	
+## Push modifications on Thales gitlab.
+	
+	
+	
 
 
 ## License
