@@ -38,12 +38,13 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 
 
 
+
 ## How to compile and launch on Gaia3 from Thales gitlab
 1. Clone the project
-	* git clone https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git
+	* _git clone https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git_
 	* Update remote
-		* git remote rename origin GAIA-repo
-		* git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git
+		* _git remote rename origin GAIA-repo_
+		* _git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git_
 	
 2. Global variables
 	* HTTP_PROXY and HTTPS_PROXY
@@ -57,9 +58,17 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 	* Create a database or use default database (default datadase is "drelephant")
 	
 4. Compile
+ *	**<span style="color:red">Only for the First compilation</span>**
+ 	* _cd $PROJECT_ROOT/web_
+ 	* _npm install_
+ 	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/defaults.js" replace "'registry': 'https://bower.herokuapp.com'" by "'registry': 'https://registry.bower.io'"
+ 	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/expand.js" replace "config.registry.default = config.registry.default || 'https://bower.herokuapp.com'" by "config.registry.default = config.registry.default || 'https://registry.bower.io'"
+
+* For all others compilations
+
 	* In compil.sh you can add or remove tests.
 		* Replcace "play_command $OPTS clean compile dist"by "play_command $OPTS clean compile test dist"
-	* Run ./compile.sh compile.conf
+	* _./compile.sh compile.conf_
 	
 5. Start & Stop
 	* After compilation:
@@ -71,10 +80,10 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 ## Get the latest modification from linkedIn github on master branch
 1. Type the following command: git remote -v
 This should output something like:
-		GAIA-repo       https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git (fetch)
-		GAIA-repo       https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git (push)
-		linkedIn-repo   https://github.com/linkedin/dr-elephant.git (fetch)
-		linkedIn-repo   https://github.com/linkedin/dr-elephant.git (push)
+GAIA-repo       https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git (fetch)
+GAIA-repo       https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git (push)
+linkedIn-repo   https://github.com/linkedin/dr-elephant.git (fetch)
+linkedIn-repo   https://github.com/linkedin/dr-elephant.git (push)
 If not type:
 	* git remote rename origin GAIA-repo
 	* git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git
@@ -89,7 +98,13 @@ If not type:
 * Check all modified files: **git status**
 * Add all modified/untracked files to the staging area: **git add .**
 * Commit your modification: **git commit -m "message de commit"**
-* Push it on the remote repository: **git push -u GAIA-repo master**
+	
+## Tag a new version of Dr.elephant
+* Checkout on master branch: _git checkout master_
+* Create the tag: _git tag -a v1.0 -m "Version 1.0"_
+* Check that the tag is well created on local machine: _git tag_
+* Push the tag on remote: _git push GAIA-repo --tags_
+
 
 ## License
 
