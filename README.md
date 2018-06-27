@@ -104,6 +104,12 @@ If not type:
 * Check that the tag is well created on local machine: _git tag_
 * Push the tag on remote: _git push GAIA-repo --tags_
 
+## Generate the delivery
+
+* Checkout the tag on a new branch: _git checkout tags/tagName -b branchName_
+* Check that the branch is well created: _git branch_
+* You can also check the last commit of the tag: _git log_
+* Generate the delivery: compile the project (you can follow steps 2 and 4 of part "How to compile and launch on Gaia3 from Thales gitlab")
 
 ## License
 
