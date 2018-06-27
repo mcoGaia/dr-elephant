@@ -36,8 +36,9 @@ We have scheduled a weekly Dr. Elephant meeting for the interested developers an
 Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute%3F).
 
 
-## How to compile and launch on Gaia3 from Thales gitlab
 
+
+## How to compile and launch on Gaia3 from Thales gitlab
 1. Clone the project
 	* git clone https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git
 	* Update remote
@@ -68,7 +69,6 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 	* To stop the application type ./bin/stop
 	
 ## Get the latest modification from linkedIn github on master branch
-	
 1. Type the following command: git remote -v
 This should output something like:
 		GAIA-repo       https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git (fetch)
@@ -83,10 +83,13 @@ If not type:
 	* git pull linkedIn-repo master
 	
 ## Push modifications on Thales gitlab.
-	
-	
-	
-
+* Update remote (or check file .git/config)
+	* git remote rename origin GAIA-repo
+	* git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git
+* Check all modified files: **git status**
+* Add all modified/untracked files to the staging area: **git add .**
+* Commit your modification: **git commit -m "message de commit"**
+* Push it on the remote repository: **git push -u GAIA-repo master**
 
 ## License
 
