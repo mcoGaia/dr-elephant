@@ -48,9 +48,8 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 	
 2. Global variables
 	* HTTP_PROXY and HTTPS_PROXY
-	* Set LANG to en_US.UTF-8
-	* Add activator*/bin/ in PATH
-	
+	* Check the file "setPath.txt" and type: _source setPath.txt_
+ 	
 3. Database
 	* Start the service mysql.
 	* Default account is drelephant with pwd = "Dr-elephant123"
