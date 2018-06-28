@@ -69,6 +69,7 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 	* In compil.sh you can add or remove tests.
 		* Replcace "play_command $OPTS clean compile dist"by "play_command $OPTS clean compile test dist"
 	* _./compile.sh compile.conf_
+	* The result of the compilation is stored in $PROJECT_ROOT/dist as a zip file
 	
 5. Start & Stop
 	* After compilation:
