@@ -62,6 +62,7 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
  	* _npm install_
  	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/defaults.js" replace "'registry': 'https://bower.herokuapp.com'" by "'registry': 'https://registry.bower.io'"
  	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/expand.js" replace "config.registry.default = config.registry.default || 'https://bower.herokuapp.com'" by "config.registry.default = config.registry.default || 'https://registry.bower.io'"
+  * _./compile.sh compile.conf_
 
 * For all others compilations
 
@@ -94,9 +95,10 @@ If not type:
 * Update remote (or check file .git/config)
 	* git remote rename origin GAIA-repo
 	* git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git
-* Check all modified files: **git status**
-* Add all modified/untracked files to the staging area: **git add .**
-* Commit your modification: **git commit -m "message de commit"**
+* Check all modified files: _git status_
+* Add all modified/untracked files to the staging area: _git add ._
+* Commit your modification: _git commit -m "message de commit"_
+* Push on remote repository: _git push -u GAIA-repo_
 	
 ## Tag a new version of Dr.elephant
 * Checkout on master branch: _git checkout master_
