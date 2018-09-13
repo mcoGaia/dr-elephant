@@ -60,8 +60,13 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 	* Create a database or use default database (default datadase is "drelephant")
 	    * _use drelephant_ or _create database databaseName_
     * Exit mysql prompt.
-	
-4. Compile
+
+4. Test the application
+    * go to $PROJECT_ROOT
+    * Type "_activator_" -> you are un Play framework prompt
+    * type command "_test_" -> all test are launched.	
+
+5. Compile
  *	**<span style="color:red">Only for the First compilation</span>**
  	* _cd $PROJECT_ROOT/web_
  	* _npm install_
@@ -80,7 +85,7 @@ For all others compilations this warning should not appear.
 	* _./compile.sh compile.conf_
 	* The result of the compilation is stored in $PROJECT_ROOT/dist as a zip file
 	
-5. Start & Stop
+6. Start & Stop
 	* After compilation:
 		* _cd dist/; unzip dr-elephant*.zip; cd dr-elephant*_
 		* Edit the following parameters in file app-conf/elephant.conf : port, db_url, db_name, db_user and db_password;
