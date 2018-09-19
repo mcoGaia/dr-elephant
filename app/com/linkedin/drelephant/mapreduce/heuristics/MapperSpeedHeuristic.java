@@ -98,6 +98,7 @@ public class MapperSpeedHeuristic implements Heuristic<MapReduceApplicationData>
     if(!data.getSucceeded()) {
       return null;
     }
+    long totalInputByteSize=0;
 
     MapReduceTaskData[] tasks = data.getMapperData();
 
@@ -118,6 +119,7 @@ public class MapperSpeedHeuristic implements Heuristic<MapReduceApplicationData>
         
         long runtimeMs = task.getTotalRunTimeMs();
         inputByteSizes.add(inputBytes);
+        totalInputByteSize += inputBytes;
         runtimesMs.add(runtimeMs);
         //Speed is bytes per second
         speeds.add((1000 * inputBytes) / (runtimeMs));
@@ -127,7 +129,6 @@ public class MapperSpeedHeuristic implements Heuristic<MapReduceApplicationData>
     long medianSpeed;
     long medianSize;
     long medianRuntimeMs;
-
     if (tasks.length != 0) {
       medianSpeed = Statistics.median(speeds);
       medianSize = Statistics.median(inputByteSizes);
@@ -150,6 +151,8 @@ public class MapperSpeedHeuristic implements Heuristic<MapReduceApplicationData>
     result.addResultDetail("Median task input size", FileUtils.byteCountToDisplaySize(medianSize));
     result.addResultDetail("Median task runtime", Statistics.readableTimespan(medianRuntimeMs));
     result.addResultDetail("Median task speed", FileUtils.byteCountToDisplaySize(medianSpeed) + "/s");
+    result.addResultDetail(CommonConstantsHeuristic.TOTAL_INPUT_SIZE_IN_MB, totalInputByteSize*1.0/(FileUtils.ONE_MB) + "");
+
 
     return result;
   }

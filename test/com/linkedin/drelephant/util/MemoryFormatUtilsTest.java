@@ -31,17 +31,16 @@ public class MemoryFormatUtilsTest extends TestCase {
     assertEquals("1 KB", MemoryFormatUtils.bytesToString(1L << 10));
     assertEquals("1 MB", MemoryFormatUtils.bytesToString(1L << 20));
     assertEquals("1 GB", MemoryFormatUtils.bytesToString(1L << 30));
-
-//    assertEquals("1 000 GB", MemoryFormatUtils.bytesToString(1000L << 30)); /*****/
+    assertEquals("1,000 GB", MemoryFormatUtils.bytesToString(1000L << 30)); /*****/
     assertEquals("1 TB", MemoryFormatUtils.bytesToString(1L << 40));
-//    assertEquals("1 024 TB", MemoryFormatUtils.bytesToString(1L << 50));
+    assertEquals("1,024 TB", MemoryFormatUtils.bytesToString(1L << 50));
 
     // Check double values
-    assertEquals("8,79 KB", MemoryFormatUtils.bytesToString(9000L));
-    assertEquals("8,79 MB", MemoryFormatUtils.bytesToString(9000L << 10));
-    assertEquals("8,79 GB", MemoryFormatUtils.bytesToString(9000L << 20));
-    assertEquals("8,79 TB", MemoryFormatUtils.bytesToString(9000L << 30));
-//    assertEquals("87 890,62 TB", MemoryFormatUtils.bytesToString((9000L * 10000) << 30));
+    assertEquals("8.79 KB", MemoryFormatUtils.bytesToString(9000L));
+    assertEquals("8.79 MB", MemoryFormatUtils.bytesToString(9000L << 10));
+    assertEquals("8.79 GB", MemoryFormatUtils.bytesToString(9000L << 20));
+    assertEquals("8.79 TB", MemoryFormatUtils.bytesToString(9000L << 30));
+    assertEquals("87,890.62 TB", MemoryFormatUtils.bytesToString((9000L * 10000) << 30));
 
   }
 
