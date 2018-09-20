@@ -153,7 +153,7 @@ update_script_py=${project_root}/scripts/update.py
 rm -rf ${project_root}/dist
 mkdir dist
 
-play_command $OPTS clean compile test dist
+play_command $OPTS clean compile dist
 
 cd target/universal
 
