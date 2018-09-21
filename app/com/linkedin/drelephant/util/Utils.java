@@ -16,6 +16,7 @@
 
 package com.linkedin.drelephant.util;
 
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -445,6 +446,26 @@ public final class Utils {
     }
     return totalWastedResources;
   }
+  
+  public static long getTotalIn(List<AppResult> resultList) {
+    long total = 0;
+    for (AppResult result : resultList) {
+      total += result.inputCard;
+    }
+    return total;
+  }
+  
+  
+  public static long getTotalOut(List<AppResult> resultList) {
+    long total = 0;
+    for (AppResult result : resultList) {
+      total += result.outputCard;
+    }
+    return total;
+  }
+  
+  
+  
 
   /**
    * Returns the total runtime of the job list i.e. last finished job - first started job
@@ -504,6 +525,38 @@ public final class Utils {
       }
     }
     return totalWaittime;
+  }
+  
+  public static long sum (List<Long> values) {
+    long cpt = 0;
+    for (Long v : values)
+      cpt += v;
+    return cpt;
+  }
+
+  static String round (long in) {
+
+    int i = 0;
+    String inStr = String.valueOf(in);
+    int NumberOfDigitsIn = inStr.length();
+    String str = "";
+
+    for (i = 0; i<inStr.length(); ++i) {
+      str += inStr.charAt(i);
+      --NumberOfDigitsIn;
+      if (NumberOfDigitsIn%3 == 0 && NumberOfDigitsIn != 0) {
+        str+='\'';
+      }
+    }
+    return str;
+  }
+
+  public static String getStrInOut(long in, long out) {
+      return round(in) + " : " + round(out);
+  }
+  
+   public static String getStrInOutLabel(long in, long out) {
+      return String.valueOf(in) + " : " + String.valueOf(out);
   }
 
   /**

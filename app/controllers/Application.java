@@ -19,6 +19,10 @@ package controllers;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Query;
 import com.codahale.metrics.Timer;
+import com.avaje.ebean.SqlQuery;
+import com.avaje.ebean.SqlRow;
+import com.avaje.ebean.Ebean;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.linkedin.drelephant.ElephantContext;
@@ -60,23 +64,43 @@ import views.html.help.metrics.helpRuntime;
 import views.html.help.metrics.helpWaittime;
 import views.html.help.metrics.helpUsedResources;
 import views.html.help.metrics.helpWastedResources;
+
+import views.html.help.metrics.helpSagaCounters;
+import views.html.index;
 import views.html.page.comparePage;
 import views.html.page.flowHistoryPage;
 import views.html.page.helpPage;
 import views.html.page.homePage;
 import views.html.page.jobHistoryPage;
-import views.html.page.oldFlowHistoryPage;
-import views.html.page.oldHelpPage;
-import views.html.page.oldJobHistoryPage;
-import views.html.page.searchPage;
-import views.html.results.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+
 import com.linkedin.drelephant.tuning.AutoTuningAPIHelper;
 import com.linkedin.drelephant.tuning.TuningInput;
+
+import views.html.page.searchPage;
+import views.html.results.compareResults;
+import views.html.results.flowDetails;
+import views.html.results.oldFlowHistoryResults;
+import views.html.results.jobDetails;
+import views.html.results.oldJobHistoryResults;
+import views.html.results.oldFlowMetricsHistoryResults;
+import views.html.results.oldJobMetricsHistoryResults;
+import views.html.results.searchResults;
+
+import views.html.page.filterCu4Page;
+import views.html.page.filterPage;
+
+
+import views.html.page.oldFlowHistoryPage;
+import views.html.page.oldJobHistoryPage;
+import views.html.results.jobHistoryResults;
+import views.html.results.flowHistoryResults;
+import views.html.results.flowMetricsHistoryResults;
+import views.html.results.jobMetricsHistoryResults;
+import views.html.page.oldHelpPage;
+import views.html.results.*;
+import com.google.gson.*;
 
 
 public class Application extends Controller {
@@ -125,6 +149,102 @@ public class Application extends Controller {
   */
   public static Result serveAsset(String path) {
     return ok(index.render());
+  }
+
+
+  public static Result preflight(String all) {
+    response().setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+    response().setHeader("Access-Control-Allow-Headers", "X-Requested-With, accept, content-type, Origin, X-Json");
+    response().setHeader("Access-Control-Allow-Origin", "*"); //http://tu-gjt-q01:5777
+    response().setHeader("Access-Control-Request-Headers", "X-Requested-With, accept, content-type, Origin, X-Json");
+    return ok();
+}
+
+  /**
+   * Controls the Filter Feature
+   */
+  public static Result filter() {
+
+    DynamicForm form = Form.form().bindFromRequest(request());
+    String cu4 = form.get("Cu4");  //si cu4 coche on recupere "CU4_", null sinon
+    String cu6 = form.get("Cu6");
+    String cu8 = form.get("Cu8");
+    String exception = form.get("Exception");
+    String str = new String("  (filtering for ");
+
+    if (cu4!=null) str += "Cu4, ";
+    if (cu6!=null) str += "Cu6, ";
+    if (cu8!=null) str += "Cu8, ";
+    if (exception!=null) str += "Exception, ";
+
+    str = str.substring(0, str.length()-2);
+    str+=" jobs)";
+
+    PaginationStats paginationStats = new PaginationStats(PAGE_LENGTH, PAGE_BAR_LENGTH);
+    int pageLength = paginationStats.getPageLength();
+    paginationStats.setCurrentPage(1);
+    final Map<String, String[]> searchString = request().queryString();
+    if (searchString.containsKey(PAGE)) {
+      try {
+        paginationStats.setCurrentPage(Integer.parseInt(searchString.get(PAGE)[0]));
+      } catch (NumberFormatException ex) {
+        logger.error("Error parsing page number. Setting current page to 1.");
+        paginationStats.setCurrentPage(1);
+      }
+    }
+    int currentPage = paginationStats.getCurrentPage();
+    int paginationBarStartIndex = paginationStats.getPaginationBarStartIndex();
+
+    // Filter jobs by search parameters
+    Query<AppResult> query = generateSearchQuery(AppResult.getSearchFields(), getSearchParams());
+    List<AppResult> result;
+    
+    if (exception!=null && (cu4!=null || cu6!=null || cu8!=null))  // exception avec soit cu4-6-8 coche
+    
+    result = query.setFirstRow((paginationBarStartIndex - 1) * pageLength)
+                                  .setMaxRows((paginationStats.getPageBarLength() - 1) * pageLength + 1)
+                                  .where()
+                                  .conjunction()
+                                  .eq(AppResult.TABLE.APP_HEURISTIC_RESULTS + "." + AppHeuristicResult.TABLE.HEURISTIC_NAME, exception)
+                                  .disjunction()
+                                  .ilike(AppResult.TABLE.NAME, cu4 + "%")
+                                  .ilike(AppResult.TABLE.NAME, cu6 + "%")
+                                  .ilike(AppResult.TABLE.NAME, cu8 + "%")
+                                  .endJunction()
+                                  .endJunction()
+                                  .order()
+                                  .desc(AppResult.TABLE.FINISH_TIME)
+                                  .findList();
+    else if (exception==null)  //pas d'exception
+        result = query.setFirstRow((paginationBarStartIndex - 1) * pageLength)
+                                  .setMaxRows((paginationStats.getPageBarLength() - 1) * pageLength + 1)
+                                  .where()
+                                  .disjunction()
+                                  .ilike(AppResult.TABLE.NAME, cu4 + "%")
+                                  .ilike(AppResult.TABLE.NAME, cu6 + "%")
+                                  .ilike(AppResult.TABLE.NAME, cu8 + "%")
+                                  .endJunction()
+                                  .order()
+                                  .desc(AppResult.TABLE.FINISH_TIME)
+                                  .findList();
+    else // ttes le exceptions
+         result = query.setFirstRow((paginationBarStartIndex - 1) * pageLength)
+                                  .setMaxRows((paginationStats.getPageBarLength() - 1) * pageLength + 1)
+                                  .where()
+                                  .eq(AppResult.TABLE.APP_HEURISTIC_RESULTS + "." + AppHeuristicResult.TABLE.HEURISTIC_NAME, exception)
+                                  .order()
+                                  .desc(AppResult.TABLE.FINISH_TIME)
+                                  .findList();                               
+
+    paginationStats.setQueryString(getQueryString());
+    if (result.isEmpty() || currentPage > paginationStats.computePaginationBarEndIndex(result.size())) {
+      return ok(filterPage.render(null, jobDetails.render(null)));
+    } else {
+      List<AppResult> resultsToDisplay = result.subList((currentPage - paginationBarStartIndex) * pageLength,
+              Math.min(result.size(), (currentPage - paginationBarStartIndex + 1) * pageLength));
+      return ok(filterPage.render(paginationStats, searchResults.render(
+              String.format("Results: Showing %,d of %,d " + str, resultsToDisplay.size(), query.findRowCount()), resultsToDisplay)));
+    }
   }
 
   /**
@@ -259,6 +379,7 @@ public class Application extends Controller {
           .findList();
       Map<IdUrlPair, List<AppResult>> map = ControllerUtil.groupJobs(results, ControllerUtil.GroupBy.JOB_EXECUTION_ID);
       return ok(searchPage.render(null, flowDetails.render(flowExecPair, map)));
+      
     } else if (!jobDefId.isEmpty()) {
       List<AppResult> results = AppResult.find
           .select(AppResult.getSearchFields() + "," + AppResult.TABLE.JOB_DEF_ID)
@@ -272,6 +393,7 @@ public class Application extends Controller {
       IdUrlPair flowDefIdPair = new IdUrlPair(flowDefId, AppResult.TABLE.FLOW_DEF_URL);
 
       return ok(searchPage.render(null, flowDefinitionIdDetails.render(flowDefIdPair, map)));
+            
     }
 
     // Prepare pagination of results
@@ -686,6 +808,13 @@ public class Application extends Controller {
     String partialJobDefId = form.get(JOB_DEF_ID);
     partialJobDefId = (partialJobDefId != null) ? partialJobDefId.trim() : null;
 
+    SqlQuery q = Ebean.createSqlQuery("select job_def_id, count(job_def_id) as nb from yarn_app_result group by job_def_id;");
+    List<SqlRow> re = q.findList();
+    List<String> jobDefList = new ArrayList<String>();
+    for (SqlRow res : re) {
+      jobDefList.add(res.getString("job_def_id"));
+    }
+    
     boolean hasSparkJob = false;
     // get the graph type
     String graphType = form.get("select-graph-type");
@@ -699,7 +828,7 @@ public class Application extends Controller {
         return ok(
             jobHistoryPage.render(partialJobDefId, graphType, jobHistoryResults.render(null, null, -1, null)));
       } else {
-        return ok(oldJobHistoryPage.render(partialJobDefId, graphType, oldJobHistoryResults.render(null, null, -1, null)));
+        return ok(oldJobHistoryPage.render(partialJobDefId, graphType, oldJobHistoryResults.render(null, null, -1, null), jobDefList));
       }
     }
     IdUrlPair jobDefPair = bestSchedulerInfoMatchGivenPartialId(partialJobDefId, AppResult.TABLE.JOB_DEF_ID);
@@ -763,6 +892,8 @@ public class Application extends Controller {
       }
 
       executionMap.put(entry.getKey(), Lists.reverse(flowExecIdToJobsMap.get(entry.getKey())));
+  
+  
     }
     if (maxStages > STAGE_LIMIT) {
       maxStages = STAGE_LIMIT;
@@ -778,15 +909,25 @@ public class Application extends Controller {
     } else {
       if (graphType.equals("heuristics")) {
         return ok(oldJobHistoryPage.render(jobDefPair.getId(), graphType,
-            oldJobHistoryResults.render(jobDefPair, executionMap, maxStages, flowExecTimeList)));
+            oldJobHistoryResults.render(jobDefPair, executionMap, maxStages, flowExecTimeList), jobDefList));
       } else if (graphType.equals("resources") || graphType.equals("time")) {
         if (hasSparkJob) {
           return notFound("Resource and time graph are not supported for spark right now");
         } else {
           return ok(oldJobHistoryPage.render(jobDefPair.getId(), graphType,
-              oldJobMetricsHistoryResults.render(jobDefPair, graphType, executionMap, maxStages, flowExecTimeList)));
+              oldJobMetricsHistoryResults.render(jobDefPair, graphType, executionMap, maxStages, flowExecTimeList), jobDefList));
         }
       }
+      // graphe saga counters
+      else if (graphType.equals("sagaCounters")) {
+      
+      
+        return ok(oldJobHistoryPage.render(jobDefPair.getId(), graphType,
+              oldJobMetricsHistoryResults.render(jobDefPair, graphType, executionMap, maxStages, flowExecTimeList), jobDefList));
+
+
+      }
+      // graphe saga counters
     }
     return notFound("Unable to find graph type: " + graphType);
   }
@@ -843,6 +984,7 @@ public class Application extends Controller {
     metricsViewMap.put(Metrics.WAIT_TIME.getText(), helpWaittime.render());
     metricsViewMap.put(Metrics.USED_RESOURCES.getText(), helpUsedResources.render());
     metricsViewMap.put(Metrics.WASTED_RESOURCES.getText(), helpWastedResources.render());
+    metricsViewMap.put(Metrics.SAGA_COUNTERS.getText(), helpSagaCounters.render());
     return metricsViewMap;
   }
   /**

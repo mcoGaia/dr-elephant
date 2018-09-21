@@ -219,17 +219,21 @@ public final class Statistics {
     return "(" + String.format("%.2f", factor) + suffix + ")";
   }
 
-  /**
+/**
    * Convert milliseconds to readable value
    *
    * @param milliseconds The number of milliseconds
    * @return A String of readable time
    */
   public static String readableTimespan(long milliseconds) {
+  
     if (milliseconds == 0) {
       return "0 sec";
+    }      
+    if (milliseconds < 1000L) {
+      return milliseconds + " ms";
     }
-
+    
     long seconds = milliseconds / 1000;
     long minutes = seconds / 60;
     long hours = minutes / 60;
@@ -286,4 +290,42 @@ public final class Statistics {
       array[i] = temp;
     }
   }
+  
+      public static long standardDeviation(long mean, List<Long> values) {
+    //Find standard deviation
+    double sum = 0d;
+    for (long value : values) {
+      sum += Math.pow((mean - value), 2);
+    }
+    sum = sum / (double) values.size();
+    return (long) (Math.sqrt(sum));
+  }
+  
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+  
+
+  
+
+

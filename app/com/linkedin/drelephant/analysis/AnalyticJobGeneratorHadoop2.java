@@ -20,6 +20,17 @@ import com.linkedin.drelephant.ElephantContext;
 import com.linkedin.drelephant.math.Statistics;
 import controllers.MetricsController;
 import java.io.IOException;
+
+/*
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Queue;
+import java.util.Random;
+*/
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -62,9 +73,11 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
   private AuthenticatedURL _authenticatedURL;
   private final ObjectMapper _objectMapper = new ObjectMapper();
 
+
   private final Queue<AnalyticJob> _firstRetryQueue = new ConcurrentLinkedQueue<AnalyticJob>();
 
   private final ArrayList<AnalyticJob> _secondRetryQueue = new ArrayList<AnalyticJob>();
+
 
   public void updateResourceManagerAddresses() {
     if (Boolean.valueOf(configuration.get(IS_RM_HA_ENABLED))) {
@@ -157,6 +170,7 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
     appList.addAll(failedApps);
 
     // Append promises from the retry queue at the end of the list
+
     while (!_firstRetryQueue.isEmpty()) {
       appList.add(_firstRetryQueue.poll());
     }

@@ -670,6 +670,7 @@ public class RestAPITest {
             Iterator<JsonNode> heuristicsSummary = node.findValue("heuristicsummary").elements();
 
             HashMap<String, String> expectedHeuristics = new LinkedHashMap<String, String>();
+
             expectedHeuristics.put("Mapper Skew", "None");
             expectedHeuristics.put("Mapper GC", "None");
             expectedHeuristics.put("Mapper Time", "None");
@@ -989,6 +990,7 @@ public class RestAPITest {
 
         Iterator<JsonNode> heuristicsSummary = node.findValue("heuristicsummary").elements();
         HashMap<String, String> expectedHeuristics = new LinkedHashMap<String, String>();
+
         expectedHeuristics.put("Mapper Skew", "None");
         expectedHeuristics.put("Mapper GC", "None");
         expectedHeuristics.put("Mapper Time", "None");

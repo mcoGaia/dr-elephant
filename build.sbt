@@ -19,7 +19,9 @@ import Dependencies._
 
 name := "dr-elephant"
 
-version := "2.0.13"
+//version := "2.0.6"
+//version := "2.0.13"
+version := "1.0"
 
 organization := "com.linkedin.drelephant"
 
@@ -38,3 +40,5 @@ playJavaSettings
 scalaVersion := "2.10.4"
 
 envVars in Test := Map("PSO_DIR_PATH" -> (baseDirectory.value / "scripts/pso").getAbsolutePath)
+
+libraryDependencies += filters

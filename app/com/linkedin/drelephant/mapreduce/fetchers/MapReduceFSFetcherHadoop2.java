@@ -88,6 +88,7 @@ public class MapReduceFSFetcherHadoop2 extends MapReduceFetcher {
     logger.info("Using timezone: " + _timeZone.getID());
 
     Configuration conf = new Configuration();
+
     this._historyLocation = conf.get("mapreduce.jobhistory.done-dir");
     this._intermediateHistoryLocation = conf.get("mapreduce.jobhistory.intermediate-done-dir");
     try {
@@ -154,6 +155,7 @@ public class MapReduceFSFetcherHadoop2 extends MapReduceFetcher {
     // Search files in done dir
     String jobHistoryDirPath = getHistoryDir(job);
 
+
     if (_fs.exists(new Path(jobHistoryDirPath))) {
       RemoteIterator<LocatedFileStatus> it = _fs.listFiles(new Path(jobHistoryDirPath), false);
       while (it.hasNext() && (jobConfPath == null || jobHistPath == null)) {
@@ -181,7 +183,9 @@ public class MapReduceFSFetcherHadoop2 extends MapReduceFetcher {
     }
     if (jobHistPath == null) {
       try {
+
         RemoteIterator<LocatedFileStatus> it = _fs.listFiles(new Path(intermediateDirPath), false);
+
         while (it.hasNext()) {
           String name = it.next().getPath().getName();
           if (name.contains(jobId) && name.endsWith(".jhist")) {

@@ -35,6 +35,96 @@ We have scheduled a weekly Dr. Elephant meeting for the interested developers an
 
 Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute%3F).
 
+
+
+
+
+## How to compile and launch on Gaia3 from Thales gitlab
+1. Clone the project
+	* _git clone https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git_
+	* Update remote
+		* _git remote rename origin GAIA-repo_
+		* _git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git_
+	
+2. Global variables
+	* HTTP_PROXY and HTTPS_PROXY
+	* Check the file "setPath.txt" and type: _source setPath.txt_
+ 	
+3. Database
+	* Start the service mysql.
+	* Default account is drelephant with pwd = "Dr-elephant123"
+	* _mysql -u drelephant -p_ (or use root default account _musql -u root_)
+	* Create your account  or use default account.
+	    * To create your account connect as root.
+	    * _GRANT ALL PRIVILEGES ON \*.\* TO 'newUserName'@'localhost' IDENTIFIED BY 'newPassword' WITH GRANT OPTION;_
+	* Create a database or use default database (default datadase is "drelephant")
+	    * _use drelephant_ or _create database databaseName_
+    * Exit mysql prompt.
+	
+4. Compile
+ *	**<span style="color:red">Only for the First compilation</span>**
+ 	* _cd $PROJECT_ROOT/web_
+ 	* _npm install_
+ 	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/defaults.js" replace "'registry': 'https://bower.herokuapp.com'" by "'registry': 'https://registry.bower.io'"
+ 	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/expand.js" replace "config.registry.default = config.registry.default || 'https://bower.herokuapp.com'" by "config.registry.default = config.registry.default || 'https://registry.bower.io'"
+ 	* _cd .._
+  * _./compile.sh compile.conf_
+  * The following warning must appear (only for the first compilation):
+DEPRECATION: You're using legacy binding syntax: valueBinding="newUser"
+For all others compilations this warning should not appear.
+
+* For all others compilations
+
+	* In compil.sh you can add or remove tests.
+		* Replcace "play_command $OPTS clean compile dist"by "play_command $OPTS clean compile test dist"
+	* _./compile.sh compile.conf_
+	* The result of the compilation is stored in $PROJECT_ROOT/dist as a zip file
+	
+5. Start & Stop
+	* After compilation:
+		* _cd dist/; unzip dr-elephant*.zip; cd dr-elephant*_
+		* Edit the following parameters in file app-conf/elephant.conf : port, db_url, db_name, db_user and db_password;
+	* Launch dr.Elephant -> 
+	    * ./bin/start.sh app-conf/ and go to localhost: "port" to use web UI.
+	* Stop dr.elephant
+	    * _./bin/stop_
+	
+## Get the latest modification from linkedIn github on master branch
+1. Type the following command: git remote -v
+This should output something like:
+GAIA-repo       https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git (fetch)
+GAIA-repo       https://yourAccount@outils-communs-pastel.ts-tlse.fr/gitlab/GAIA/Dr-elephant.git (push)
+linkedIn-repo   https://github.com/linkedin/dr-elephant.git (fetch)
+linkedIn-repo   https://github.com/linkedin/dr-elephant.git (push)
+If not type:
+	* git remote rename origin GAIA-repo
+	* git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git
+	
+2. Pull the project from github
+	* git pull linkedIn-repo master
+	
+## Push modifications on Thales gitlab.
+* Update remote (or check file .git/config)
+	* git remote rename origin GAIA-repo
+	* git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git
+* Check all modified files: _git status_
+* Add all modified/untracked files to the staging area: _git add ._
+* Commit your modification: _git commit -m "message de commit"_
+* Push on remote repository: _git push -u GAIA-repo_
+	
+## Tag a new version of Dr.elephant
+* Checkout on master branch: _git checkout master_
+* Create the tag: _git tag -a v1.0 -m "Version 1.0"_
+* Check that the tag is well created on local machine: _git tag_
+* Push the tag on remote: _git push GAIA-repo --tags_
+
+## Generate the delivery
+
+* Checkout the tag on a new branch: _git checkout tags/tagName -b branchName_
+* Check that the branch is well created: _git branch_
+* You can also check the last commit of the tag: _git log_
+* Generate the delivery: compile the project (you can follow steps 2 and 4 of part "How to compile and launch on Gaia3 from Thales gitlab")
+
 ## License
 
     Copyright 2016 LinkedIn Corp.

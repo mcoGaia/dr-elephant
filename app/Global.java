@@ -26,6 +26,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.logging.Level;
 
+import play.libs.F.Promise;
+import play.mvc.Action;
+import play.mvc.Http;
+import play.mvc.SimpleResult;
+
+import play.mvc.Result;
+
 
 /**
  * This class manages all the global settings
@@ -87,4 +94,46 @@ public class Global extends GlobalSettings {
     modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
     field.set(null, newValue);
   }
+  
+  
+  
+  /* CORS filter */
+
+    private class ActionWrapper extends Action.Simple {
+        public ActionWrapper(Action<?> action) {
+            this.delegate = action;
+        }
+
+        @Override
+        public Promise<SimpleResult> call(Http.Context ctx) throws java.lang.Throwable {
+            Promise<SimpleResult> result = this.delegate.call(ctx);
+            Http.Response response = ctx.response();
+            response.setHeader("Access-Control-Allow-Origin", "*"); //http://tu-gjt-q01:5777
+            response.setHeader("Access-Control-Allow-Headers", "X-Requested-With, accept, content-type, Origin, X-Json");
+            response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+            response.setHeader("Access-Control-Request-Headers", "X-Requested-With, accept, content-type, Origin, X-Json");
+
+            return result;
+        }
+    }
+
+    @Override
+    public Action<?> onRequest(Http.Request request, java.lang.reflect.Method actionMethod) {
+        Logger.info("before each request..." + request.toString());
+        return new ActionWrapper(super.onRequest(request, actionMethod));
+    }
+
+  /* CORS filter */
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 }

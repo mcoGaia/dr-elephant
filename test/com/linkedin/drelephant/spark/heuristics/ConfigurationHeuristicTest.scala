@@ -127,7 +127,9 @@ class ConfigurationHeuristicTest extends FunSpec with Matchers {
       }
 
       it("returns the serializer") {
+
         val details = heuristicResultDetails.get(8)
+//        val details = heuristicResultDetails.get(9)
         details.getName should include("spark.serializer")
         details.getValue should be("dummySerializer")
         details.getDetails should be("KyroSerializer is Not Enabled.")
@@ -135,6 +137,7 @@ class ConfigurationHeuristicTest extends FunSpec with Matchers {
 
       it("returns the shuffle service flag") {
         val details = heuristicResultDetails.get(9)
+//        val details = heuristicResultDetails.get(10)
         details.getName should include("spark.shuffle.service.enabled")
         details.getValue should be("false")
         details.getDetails should be("Spark shuffle service is not enabled.")
@@ -177,6 +180,11 @@ class ConfigurationHeuristicTest extends FunSpec with Matchers {
       it("has the executor cores when they're present") {
         val evaluator = newEvaluatorWithConfigurationProperties(Map("spark.executor.cores" -> "2"))
         evaluator.executorCores should be(Some(2))
+      }
+      
+      it("has the driver cores when they're present") {
+        val evaluator = newEvaluatorWithConfigurationProperties(Map("spark.driver.cores" -> "3"))
+        evaluator.driverCores should be(Some(3))
       }
 
       it("has no executor cores when they're absent") {
@@ -259,6 +267,7 @@ class ConfigurationHeuristicTest extends FunSpec with Matchers {
         evaluator.isShuffleServiceEnabled should be(Some(false))
         evaluator.serializerSeverity should be(Severity.NONE)
         evaluator.shuffleAndDynamicAllocationSeverity should be(Severity.SEVERE)
+
         evaluator.severityConfThresholds should be(Severity.NONE)
         evaluator.severity should be(Severity.SEVERE)
       }

@@ -100,10 +100,8 @@ public class ElephantRunner implements Runnable {
           loadGeneralConfiguration();
           loadAnalyticJobGenerator();
           ElephantContext.init();
-
           // Initialize the metrics registries.
           MetricsController.init();
-
           logger.info("executor num is " + _executorNum);
           if (_executorNum < 1) {
             throw new RuntimeException("Must have at least 1 worker thread.");
@@ -188,6 +186,7 @@ public class ElephantRunner implements Runnable {
       } catch (TimeoutException e){
         logger.warn("Timed out while fetching data. Exception message is: " + e.getMessage());
         jobFate();
+
       }catch (Exception e) {
         logger.error(e.getMessage());
         logger.error(ExceptionUtils.getStackTrace(e));
