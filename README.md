@@ -47,8 +47,8 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 		* _git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git_
 	
 2. Global variables
-	* HTTP_PROXY and HTTPS_PROXY
 	* Check the file "setPath.txt" and type: _source setPath.txt_
+	* Double check HTTP_PROXY & HTTPS_PROXY !
  	
 3. Database
 	* Start the service mysql.
@@ -60,12 +60,17 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 	* Create a database or use default database (default datadase is "drelephant")
 	    * _use drelephant_ or _create database databaseName_
     * Exit mysql prompt.
-	
-4. Compile
+
+4. Test the application
+    * go to $PROJECT_ROOT
+    * Type "_activator_" -> you are un Play framework prompt
+    * type command "_test_" -> all test are launched.	
+
+5. Compile
  *	**<span style="color:red">Only for the First compilation</span>**
  	* _cd $PROJECT_ROOT/web_
  	* _npm install_
- 	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/defaults.js" replace "'registry': 'https://bower.herokuapp.com'" by "'registry': 'https://registry.bower.io'"
+ 	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/defaults.js" replace "'registry': 'https://bower.herokuapp.com'" by "'registry': 'https://registry.bower.io'"  <= Warning, check syntax after editing the line
  	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/expand.js" replace "config.registry.default = config.registry.default || 'https://bower.herokuapp.com'" by "config.registry.default = config.registry.default || 'https://registry.bower.io'"
  	* _cd .._
   * _./compile.sh compile.conf_
@@ -80,7 +85,7 @@ For all others compilations this warning should not appear.
 	* _./compile.sh compile.conf_
 	* The result of the compilation is stored in $PROJECT_ROOT/dist as a zip file
 	
-5. Start & Stop
+6. Start & Stop
 	* After compilation:
 		* _cd dist/; unzip dr-elephant*.zip; cd dr-elephant*_
 		* Edit the following parameters in file app-conf/elephant.conf : port, db_url, db_name, db_user and db_password;
