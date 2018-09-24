@@ -47,7 +47,7 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 		* _git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git_
 	
 2. Global variables
-	* Check the file "setPath.txt" and type: _source setPath.txt_
+	* Check the file "setEnv.txt" and type: _source setEnv.txt_
 	* Double check HTTP_PROXY & HTTPS_PROXY !
  	
 3. Database
@@ -80,8 +80,6 @@ For all others compilations this warning should not appear.
 
 * For all others compilations
 
-	* In compil.sh you can add or remove tests.
-		* Replcace "play_command $OPTS clean compile dist"by "play_command $OPTS clean compile test dist"
 	* _./compile.sh compile.conf_
 	* The result of the compilation is stored in $PROJECT_ROOT/dist as a zip file
 	
@@ -115,11 +113,13 @@ If not type:
 * Check all modified files: _git status_
 * Add all modified/untracked files to the staging area: _git add ._
 * Commit your modification: _git commit -m "message de commit"_
-* Push on remote repository: _git push -u GAIA-repo_
+* Push on remote repository: _git push -u GAIA-repo branchName_
 	
 ## Tag a new version of Dr.elephant
-* Checkout on master branch: _git checkout master_
-* Create the tag: _git tag -a v1.0 -m "Version 1.0"_
+* Checkout the branch you want to tag: _git checkout branchName_
+* Edit the file ${PROJECT_ROOT}/build.sbt
+	* version := "newVersion"
+* Create the tag: _git tag -a newVersion -m "Version newVersion"_
 * Check that the tag is well created on local machine: _git tag_
 * Push the tag on remote: _git push GAIA-repo --tags_
 
