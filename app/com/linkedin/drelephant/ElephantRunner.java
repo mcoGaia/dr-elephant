@@ -187,7 +187,9 @@ public class ElephantRunner implements Runnable {
         logger.warn("Timed out while fetching data. Exception message is: " + e.getMessage());
         jobFate();
 
-      }catch (Exception e) {
+      } catch (java.io.FileNotFoundException ex) {
+          logger.info("informations about [" + _analyticJob.getAppId() + "] deleted from jobhistory");
+      } catch (Exception e) {
         logger.error(e.getMessage());
         logger.error(ExceptionUtils.getStackTrace(e));
         jobFate();
