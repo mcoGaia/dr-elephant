@@ -22,6 +22,7 @@
 GET        /                                    controllers.Application.dashboard()
 GET        /help                                controllers.Application.oldHelp()
 GET        /search                              controllers.Application.search()
+GET        /delete                              controllers.Application.delete()
 GET        /compare                             controllers.Application.compare()
 GET        /flowhistory                         controllers.Application.oldFlowHistory()
 GET        /jobhistory                          controllers.Application.oldJobHistory()
