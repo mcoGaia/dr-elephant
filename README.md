@@ -71,7 +71,6 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
  	* _cd $PROJECT_ROOT/web_
  	* _npm install_
  	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/defaults.js" replace "'registry': 'https://bower.herokuapp.com'" by "'registry': 'https://registry.bower.io'"  <= Warning, check syntax after editing the line
- 	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/expand.js" replace "config.registry.default = config.registry.default || 'https://bower.herokuapp.com'" by "config.registry.default = config.registry.default || 'https://registry.bower.io'"
  	* _cd .._
   * _./compile.sh compile.conf_
   * The following warning must appear (only for the first compilation):
