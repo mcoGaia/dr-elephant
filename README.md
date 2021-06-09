@@ -47,7 +47,7 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
 		* _git remote add linkedIn-repo https://github.com/linkedin/dr-elephant.git_
 	
 2. Global variables
-	* Check the file "setPath.txt" and type: _source setPath.txt_
+	* Check the file "setEnv.txt" and type: _source setEnv.txt_
 	* Double check HTTP_PROXY & HTTPS_PROXY !
  	
 3. Database
