@@ -395,13 +395,9 @@ public class Application extends Controller {
 		// Filter jobs by search parameters
 		Query<AppResult> query = generateSearchQuery(AppResult.getSearchFields(), getSearchParams());
 
-		logger.error(query.getGeneratedSql());
-
 		query = query.setFirstRow((paginationBarStartIndex - 1) * pageLength)
 				.setMaxRows((paginationStats.getPageBarLength() - 1) * pageLength + 1)
 				.fetch(AppResult.TABLE.APP_HEURISTIC_RESULTS, AppHeuristicResult.getSearchFields());
-
-		logger.error(query.getGeneratedSql());
 
 		List<AppResult> results = query.findList();
 		paginationStats.setQueryString(getQueryString());
