@@ -146,6 +146,7 @@ trap "exit" SIGINT SIGTERM
 start_script=${project_root}/scripts/start.sh
 stop_script=${project_root}/scripts/stop.sh
 app_conf=${project_root}/app-conf
+
 update_script_sh=${project_root}/scripts/update.sh
 update_script_py=${project_root}/scripts/update.py
 pso_dir=${project_root}/scripts/pso

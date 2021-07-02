@@ -80,7 +80,7 @@ For all others compilations this warning should not appear.
 * For all others compilations
 
 	* In compil.sh you can add or remove tests.
-		* Replcace "play_command $OPTS clean compile dist"by "play_command $OPTS clean compile test dist"
+		* Replace "play_command $OPTS clean compile dist"by "play_command $OPTS clean compile test dist"
 	* _./compile.sh compile.conf_
 	* The result of the compilation is stored in $PROJECT_ROOT/dist as a zip file
 	

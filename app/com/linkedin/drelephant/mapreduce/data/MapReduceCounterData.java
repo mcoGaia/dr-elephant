@@ -104,7 +104,8 @@ public class MapReduceCounterData {
     FileSystemCounters,
     MapReduce,
     FileOutput,
-    SagaCounters;
+    SagaCounters,
+	SagaSecondsCounters;
   }
 
   //(groupe, nom de la balise, nom affiche dans le tableau du jobhistory)
@@ -149,8 +150,8 @@ public class MapReduceCounterData {
     
     /* <Saga counters> */     
     JOB_INPUT_OBJECT(GroupName.SagaCounters, "Objects-In", ".-In: [ ... ]"),  //JOB_INPUT_OBJECT_HDFS(GroupName.SagaCounters, "HDFS-In", "HDFS-In: [ ... ]"),
-    JOB_OUTPUT_OBJECT(GroupName.SagaCounters, "Objects-Out", ".-Out: [ ... ]");  //JOB_INPUT_OBJECT_GBIN(GroupName.SagaCounters, "Gbin-In", "Gbin-In: [ ... ]");
-
+    JOB_OUTPUT_OBJECT(GroupName.SagaCounters, "Objects-Out", ".-Out: [ ... ]"),  //JOB_INPUT_OBJECT_GBIN(GroupName.SagaCounters, "Gbin-In", "Gbin-In: [ ... ]");
+	DURATION_IN_FACADE_TASK(GroupName.SagaSecondsCounters, "Duration in façade tasks in seconds", "Duration in façade tasks in seconds");
     /* </Saga counters> */ 
 
 
