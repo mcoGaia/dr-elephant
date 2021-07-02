@@ -16,20 +16,21 @@
 
 package com.linkedin.drelephant.mapreduce.heuristics;
 
-import com.linkedin.drelephant.configurations.heuristic.HeuristicConfigurationData;
-import com.linkedin.drelephant.util.Utils;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import com.linkedin.drelephant.analysis.Heuristic;
 import com.linkedin.drelephant.analysis.HeuristicResult;
 import com.linkedin.drelephant.analysis.Severity;
-import com.linkedin.drelephant.mapreduce.data.MapReduceCounterData;
+import com.linkedin.drelephant.configurations.heuristic.HeuristicConfigurationData;
 import com.linkedin.drelephant.mapreduce.data.MapReduceApplicationData;
+import com.linkedin.drelephant.mapreduce.data.MapReduceCounterData;
 import com.linkedin.drelephant.mapreduce.data.MapReduceTaskData;
 import com.linkedin.drelephant.math.Statistics;
-import java.util.Map;
-import org.apache.log4j.Logger;
+import com.linkedin.drelephant.util.Utils;
 
 /**
  * Analyses garbage collection efficiency
@@ -75,23 +76,47 @@ public abstract class GenericCustomSagaHeuristic implements Heuristic<MapReduceA
 		}
 
 		int nbTaskwithFacadeWork = 0;
+
+		long min;
+		long max;
+		// check list is empty or not
+		if (durations.isEmpty()) {
+			min = Integer.MIN_VALUE;
+			max = Integer.MIN_VALUE;
+		}
+
+		// create a new list to avoid modification
+		// in the original list
+		List<Long> sortedlist = durations;
+
+		// sort list in natural order
+		Collections.sort(sortedlist);
+
+		// last element in the sorted list would be maximum
+		max = sortedlist.get(sortedlist.size() - 1);
+		min = sortedlist.get(0);
+
 		for (Long duration : durations) {
 			if (duration > 0) {
 				nbTaskwithFacadeWork++;
 			}
 		}
+
 		long averageFacadeDuratins = Statistics.average(durations);
 
 		Severity severity = Severity.NONE;
 
-		logger.info("getHeuristicName "  + _heuristicConfData.getHeuristicName());
-		logger.info("getClassName "  + _heuristicConfData.getClassName());
-		
+		logger.info("getHeuristicName " + _heuristicConfData.getHeuristicName());
+		logger.info("getClassName " + _heuristicConfData.getClassName());
+
 		HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
-				_heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, nbTaskwithFacadeWork));
+				_heuristicConfData.getHeuristicName(), severity,
+				Utils.getHeuristicScore(severity, nbTaskwithFacadeWork));
 
 		result.addResultDetail("Number of tasks with façade work", Integer.toString(nbTaskwithFacadeWork));
 		result.addResultDetail("Avg façade runtime (s)", Long.toString(averageFacadeDuratins));
+		result.addResultDetail("Min (s)", Long.toString(min));
+		result.addResultDetail("Max (s)", Long.toString(max));
 		return result;
 	}
 
