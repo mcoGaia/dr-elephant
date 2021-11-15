@@ -70,7 +70,10 @@ public abstract class GenericCustomSagaHeuristic implements Heuristic<MapReduceA
 		List<Long> durations = new ArrayList<Long>();
 
 		for (MapReduceTaskData task : tasks) {
+			logger.info("getTaskId : " + task.getTaskId());
+			
 			if (task.isTimeAndCounterDataPresent()) {
+				logger.info("duration : " + task.getCounters().get(MapReduceCounterData.CounterName.DURATION_IN_FACADE_TASK));
 				durations.add(task.getCounters().get(MapReduceCounterData.CounterName.DURATION_IN_FACADE_TASK));
 			}
 		}
@@ -119,23 +122,4 @@ public abstract class GenericCustomSagaHeuristic implements Heuristic<MapReduceA
 		result.addResultDetail("Max (s)", Long.toString(max));
 		return result;
 	}
-
-	// private Severity getGcRatioSeverity(long runtimeMs, long cpuMs, long gcMs) {
-	// double gcRatio = ((double)gcMs)/cpuMs;
-	// Severity ratioSeverity = Severity.getSeverityAscending(
-	// gcRatio, gcRatioLimits[0], gcRatioLimits[1], gcRatioLimits[2],
-	// gcRatioLimits[3]);
-	//
-	// // Severity is reduced if task runtime is insignificant
-	// Severity runtimeSeverity = getRuntimeSeverity(runtimeMs);
-	//
-	// return Severity.min(ratioSeverity, runtimeSeverity);
-	// }
-	//
-	// private Severity getRuntimeSeverity(long runtimeMs) {
-	// return Severity.getSeverityAscending(
-	// runtimeMs, runtimeLimits[0], runtimeLimits[1], runtimeLimits[2],
-	// runtimeLimits[3]);
-	// }
-
 }

@@ -16,6 +16,16 @@ public class MapperCustomSagaHeuristic extends GenericCustomSagaHeuristic {
     @Override
     protected MapReduceTaskData[] getTasks(MapReduceApplicationData data) {
         logger.info("getTasks");
-        return data.getMapperData();
+        MapReduceTaskData[] tasks = new MapReduceTaskData[data.getReducerData().length + data.getMapperData().length];
+        int i = 0;
+        for(MapReduceTaskData reduce : data.getReducerData()) {
+        	tasks[i] = reduce;
+        	i++;
+        }
+        for(MapReduceTaskData map : data.getMapperData()) {
+        	tasks[i] = map;
+        	i++;
+        }
+        return tasks;
     }
 }
