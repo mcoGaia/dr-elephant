@@ -70,7 +70,7 @@ Check this [link](https://github.com/linkedin/dr-elephant/wiki/How-to-Contribute
  *	**<span style="color:red">Only for the First compilation</span>**
  	* _cd $PROJECT_ROOT/web_
  	* _npm install_
- 	* In file "./node_modules/bower/lib/node_modules/bower-config/lib/util/defaults.js" replace "'registry': 'https://bower.herokuapp.com'" by "'registry': 'https://registry.bower.io'"  <= Warning, check syntax after editing the line
+ 	* _sed -i 's/https:\/\/bower.herokuapp.com/https:\/\/registry.bower.io/g' ./node_modules/bower/lib/node_modules/bower-config/lib/util/defaults.js_ 	
  	* _cd .._
   * _./compile.sh compile.conf_
   * The following warning must appear (only for the first compilation):

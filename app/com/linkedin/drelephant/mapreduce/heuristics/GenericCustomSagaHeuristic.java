@@ -74,7 +74,9 @@ public abstract class GenericCustomSagaHeuristic implements Heuristic<MapReduceA
 			
 			if (task.isTimeAndCounterDataPresent()) {
 				logger.info("duration : " + task.getCounters().get(MapReduceCounterData.CounterName.DURATION_IN_FACADE_TASK));
-				durations.add(task.getCounters().get(MapReduceCounterData.CounterName.DURATION_IN_FACADE_TASK));
+				if(task.getCounters().get(MapReduceCounterData.CounterName.DURATION_IN_FACADE_TASK) > 0) {
+					durations.add(task.getCounters().get(MapReduceCounterData.CounterName.DURATION_IN_FACADE_TASK));	
+				}
 			}
 		}
 
