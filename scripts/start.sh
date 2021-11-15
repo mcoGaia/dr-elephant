@@ -29,6 +29,9 @@ function check_config() {
   fi
 }
 
+#Java home 1.8 instead of J11
+export JAVA_HOME=/usr/java/jdk1.8.0_181/
+
 # Save project root dir
 project_root=$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" && pwd )
 
