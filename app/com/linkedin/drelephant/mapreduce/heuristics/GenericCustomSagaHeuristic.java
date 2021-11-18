@@ -98,16 +98,22 @@ public abstract class GenericCustomSagaHeuristic implements Heuristic<MapReduceA
 		Collections.sort(sortedlist);
 
 		// last element in the sorted list would be maximum
-		max = sortedlist.get(sortedlist.size() - 1);
-		min = sortedlist.get(0);
+		long averageFacadeDuratins = 0;
+		if(sortedlist.isEmpty()) {
+			max = 0;
+			min = 0;
+		} else {
+			max = sortedlist.get(sortedlist.size() - 1);
+			min = sortedlist.get(0);
 
-		for (Long duration : durations) {
-			if (duration > 0) {
-				nbTaskwithFacadeWork++;
+			for (Long duration : durations) {
+				if (duration > 0) {
+					nbTaskwithFacadeWork++;
+				}
 			}
-		}
 
-		long averageFacadeDuratins = Statistics.average(durations);
+			averageFacadeDuratins = Statistics.average(durations);
+		}
 
 		Severity severity = Severity.NONE;
 
