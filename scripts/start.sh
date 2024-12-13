@@ -30,7 +30,7 @@ function check_config() {
 }
 
 #Java home 1.8 instead of J11
-export JAVA_HOME=/usr/java/jdk1.8.0_181/
+export JAVA_HOME=/usr/java/openlogic-openjdk-8u432-b06-linux-x64/
 
 # Save project root dir
 project_root=$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" && pwd )

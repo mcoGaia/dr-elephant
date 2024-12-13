@@ -94,8 +94,10 @@ object Dependencies {
 
     "org.apache.httpcomponents" % "httpcore" % "4.4.4",
     "org.scalatest" %% "scalatest" % "3.0.0" % Test,
-    "com.h2database" % "h2" % "1.4.196" % Test
-
+    "com.h2database" % "h2" % "1.4.196" % Test,
+    
+    "commons-lang" % "commons-lang" % "2.6"
+    
   ) :+ sparkExclusion
 
   var dependencies = Seq(javaJdbc, javaEbean, cache)
